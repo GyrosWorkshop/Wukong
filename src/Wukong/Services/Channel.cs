@@ -142,9 +142,9 @@ namespace Wukong.Services
                 nextUser = null;
                 return;
             }
-            if (user == nextUser)
+            if (user == CurrentUser)
             {
-                nextUser = nextUser.NextOrFirst();
+                CurrentUser = CurrentUser.NextOrFirst();
             }
             userList.Remove(user);
             BroadcastUserListUpdated();
