@@ -12,6 +12,7 @@ using Wukong.Services;
 using Wukong.Utilities;
 using Wukong.Models;
 using Wukong.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Wukong.Controllers
 {
@@ -22,16 +23,18 @@ namespace Wukong.Controllers
     public class ChannelController : Controller
     {
         private readonly Provider provider;
+        private readonly ILogger Logger;
         private static Mutex mut = new Mutex();
         private static bool DidInitializeSocketManager = false;
         private IDictionary<string, AsyncAutoResetEvent> startPlayingEvents = new Dictionary<string, AsyncAutoResetEvent>();
 
-        public ChannelController(IOptions<ProviderOption> providerOption)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory)
         {
             this.provider = new Provider(providerOption.Value.Url);
-
+            Logger = loggerFactory.CreateLogger("ChannelController");
             mut.WaitOne();
-            if (!DidInitializeSocketManager) {
+            if (!DidInitializeSocketManager)
+            {
                 DidInitializeSocketManager = true;
                 SocketManager.Manager.UserDisconnect += UserDisconnect;
                 SocketManager.Manager.UserConnect += UserConnect;
@@ -152,11 +155,13 @@ namespace Wukong.Controllers
 
         async private void StartMonitor(Channel channel, Song song)
         {
+            Logger.LogDebug("StartMonitor", DateTime.Now, song);
             startPlayingEvents[channel.Id] = new AsyncAutoResetEvent(false);
             var checker = new TimerChecker(10, startPlayingEvents[channel.Id]);
             var timer = new Timer(checker.Check, channel, (int)song.Length, 1000);
 
             await startPlayingEvents[channel.Id].WaitAsync();
+            Logger.LogDebug("StartPlaying", DateTime.Now, song);
 
             timer.Dispose();
             StartPlaying(channel);
