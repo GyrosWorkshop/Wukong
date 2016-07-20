@@ -91,20 +91,11 @@ namespace Wukong
 
             app.UseApplicationInsightsRequestTelemetry();
             app.UseApplicationInsightsExceptionTelemetry();
-            if (!env.IsEnvironment("Development"))
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
-                // Change the scheme to https manually in production env.
-                app.Use(async (HttpContext context, Func<Task> next) =>
-                {
-                    if (context.Request.Scheme == "http")
-                    {
-                        context.Request.Scheme = "https";
-                    }
-                    await next();
-                });
-            }
-
-            app.UseCors(builder => builder.WithOrigins(new string[] { "http://127.0.0.1:8080" }).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+            });
+            app.UseCors(builder => builder.WithOrigins(new string[] { "http://127.0.0.1:8080", "http://localhost:8080" }).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions());
             app.UseGoogleAuthentication(Options.OAuthOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));
