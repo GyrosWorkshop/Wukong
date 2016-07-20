@@ -15,59 +15,65 @@ using Microsoft.Extensions.Logging;
 
 namespace Wukong.Services
 {
-    public delegate void UserDisconnect(string userId);
-    public delegate void UserConnect(string userId);
-    public class SocketManager
+    public interface ISocketManager
     {
-        static readonly Lazy<SocketManager> manage =
-            new Lazy<SocketManager>(() => new SocketManager());
-        public string PublicKey { set; get; }
-        public ILoggerFactory LoggerFactory
+        void SendMessage(List<string> userIds, WebSocketEvent obj);
+        Task AcceptWebsocket(WebSocket webSocket, ClaimsPrincipal user);
+    }
+
+    public class SocketManagerMiddleware
+    {
+        private readonly RequestDelegate _next;
+        public SocketManagerMiddleware(RequestDelegate next)
         {
-            set
+            _next = next;
+        }
+        public async Task Invoke(HttpContext ctx, ISocketManager socketManager)
+        {
+            if (ctx.WebSockets.IsWebSocketRequest)
             {
-                Logger = value.CreateLogger("SocketManager");
+                if (ctx.User?.FindFirst(ClaimTypes.Authentication)?.Value != "true")
+                {
+                    return;
+                }
+                var websocket = await ctx.WebSockets.AcceptWebSocketAsync();
+                await socketManager.AcceptWebsocket(websocket, ctx.User);
+            }
+            else
+            {
+                await _next(ctx);
             }
         }
+    }
+
+    public delegate void UserDisconnect(string userId);
+    public delegate void UserConnect(string userId);
+    public class SocketManager: ISocketManager
+    {
+        private ILogger Logger;
+        public SocketManager(ILoggerFactory loggerFactory)
+        {
+            Logger = loggerFactory.CreateLogger("SockerManager");
+        }
+
         private Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
         public event UserDisconnect UserDisconnect;
         public event UserConnect UserConnect;
         private ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
-        private ILogger Logger;
 
-        static public SocketManager Manager
+        public async Task AcceptWebsocket(WebSocket webSocket, ClaimsPrincipal user)
         {
-            get
-            {
-                return manage.Value;
-            }
-        }
-
-        public async Task WebsocketHandler(HttpContext context, Func<Task> next)
-        {
-            if (context.WebSockets.IsWebSocketRequest)
-            {
-                if (context.User?.FindFirst(ClaimTypes.Authentication)?.Value != "true")
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ResetTimer(userId);
+            verifiedSocket.AddOrUpdate(userId,
+                webSocket,
+                (key, socket) =>
                 {
-                    return;
-                }
-                var websocket = await context.WebSockets.AcceptWebSocketAsync();
-                var userId = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                ResetTimer(userId);
-                verifiedSocket.AddOrUpdate(userId,
-                    websocket,
-                    (key, socket) =>
-                    {
-                        socket.Dispose();
-                        return websocket;
-                    });
-                UserConnect(userId);
-                await StartMonitorSocket(userId, websocket);
-            }
-            else
-            {
-                await next();
-            }
+                    socket.Dispose();
+                    return webSocket;
+                });
+            UserConnect(userId);
+            await StartMonitorSocket(userId, webSocket);
         }
 
         public async void SendMessage(List<string> userIds, WebSocketEvent obj)

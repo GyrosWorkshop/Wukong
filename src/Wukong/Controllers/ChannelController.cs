@@ -24,20 +24,22 @@ namespace Wukong.Controllers
     {
         private readonly Provider provider;
         private readonly ILogger Logger;
+        private readonly ISocketManager SocketManager;
         private static Mutex mut = new Mutex();
         private static bool DidInitializeSocketManager = false;
         private IDictionary<string, AsyncManualResetEvent> startPlayingEvents = new Dictionary<string, AsyncManualResetEvent>();
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, ISocketManager socketManager)
         {
             this.provider = new Provider(providerOption.Value.Url);
             Logger = loggerFactory.CreateLogger("ChannelController");
+            SocketManager = socketManager;
             mut.WaitOne();
             if (!DidInitializeSocketManager)
             {
                 DidInitializeSocketManager = true;
-                SocketManager.Manager.UserDisconnect += UserDisconnect;
-                SocketManager.Manager.UserConnect += UserConnect;
+                //SocketManager.Manager.UserDisconnect += UserDisconnect;
+                //SocketManager.Manager.UserConnect += UserConnect;
             }
             mut.ReleaseMutex();
         }
@@ -99,7 +101,7 @@ namespace Wukong.Controllers
                 StartMonitor(channel, song);
             }
             channel.StartTime = DateTime.Now;
-            SocketManager.Manager.SendMessage(channel.UserList, new Play
+            SocketManager.SendMessage(channel.UserList, new Play
             {
                 Song = song,
                 Elapsed = 0,
@@ -137,7 +139,7 @@ namespace Wukong.Controllers
             }
             else
             {
-                SocketManager.Manager.SendMessage(channel.UserList, new Wukong.Models.NextSongUpdated
+                SocketManager.SendMessage(channel.UserList, new Wukong.Models.NextSongUpdated
                 {
                     Song = await provider.GetSong(channel.NextSong, true),
                 });
@@ -154,7 +156,7 @@ namespace Wukong.Controllers
         {
             var objects = users.Select(i => Storage.Instance.GetUser(i)).ToList();
 
-            SocketManager.Manager.SendMessage(recipients, new Wukong.Models.UserListUpdated
+            SocketManager.SendMessage(recipients, new Wukong.Models.UserListUpdated
             {
                 Users = objects
             });
@@ -198,7 +200,7 @@ namespace Wukong.Controllers
 
         private async void EmitChannelInfo(Channel channel, string userId)
         {
-            SocketManager.Manager.SendMessage(new List<string> { userId }, new Play
+            SocketManager.SendMessage(new List<string> { userId }, new Play
             {
                 Elapsed = channel.Elapsed,
                 User = channel.CurrentUserId,

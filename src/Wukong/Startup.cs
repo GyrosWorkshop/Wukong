@@ -67,6 +67,8 @@ namespace Wukong
             {
                 options.Url = Configuration["ProviderOption:Url"];
             });
+
+            services.AddSingleton<ISocketManager, SocketManager>();
             // services.Configure<MvcOptions>(options =>
             // {
             //     options.Filters.Add(new RequireHttpsAttribute ());
@@ -86,9 +88,6 @@ namespace Wukong
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
-            SocketManager.Manager.PublicKey = Configuration["UserOption:PublicKey"];
-            SocketManager.Manager.LoggerFactory = loggerFactory;
-
             app.UseApplicationInsightsRequestTelemetry();
             app.UseApplicationInsightsExceptionTelemetry();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -100,7 +99,7 @@ namespace Wukong
             app.UseGoogleAuthentication(Options.OAuthOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));
             app.UseWebSockets();
-            app.Use(SocketManager.Manager.WebsocketHandler);
+            app.UseMiddleware<SocketManagerMiddleware>();
             app.UseSession();
             app.UseMvc();
         }
