@@ -38,8 +38,8 @@ namespace Wukong.Controllers
             if (!DidInitializeSocketManager)
             {
                 DidInitializeSocketManager = true;
-                //SocketManager.Manager.UserDisconnect += UserDisconnect;
-                //SocketManager.Manager.UserConnect += UserConnect;
+                SocketManager.UserDisconnect += UserDisconnect;
+                SocketManager.UserConnect += UserConnect;
             }
             mut.ReleaseMutex();
         }

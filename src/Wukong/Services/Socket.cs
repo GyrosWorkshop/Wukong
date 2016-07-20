@@ -17,6 +17,8 @@ namespace Wukong.Services
 {
     public interface ISocketManager
     {
+        event UserDisconnect UserDisconnect;
+        event UserConnect UserConnect;
         void SendMessage(List<string> userIds, WebSocketEvent obj);
         Task AcceptWebsocket(WebSocket webSocket, ClaimsPrincipal user);
     }
@@ -48,7 +50,7 @@ namespace Wukong.Services
 
     public delegate void UserDisconnect(string userId);
     public delegate void UserConnect(string userId);
-    public class SocketManager: ISocketManager
+    public class SocketManager : ISocketManager
     {
         private ILogger Logger;
         public SocketManager(ILoggerFactory loggerFactory)
