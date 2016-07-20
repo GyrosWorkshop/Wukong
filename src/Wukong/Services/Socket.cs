@@ -20,7 +20,7 @@ namespace Wukong.Services
         event UserDisconnect UserDisconnect;
         event UserConnect UserConnect;
         void SendMessage(List<string> userIds, WebSocketEvent obj);
-        Task AcceptWebsocket(WebSocket webSocket, ClaimsPrincipal user);
+        Task AcceptWebsocket(WebSocket webSocket, string userId);
     }
 
     public class SocketManagerMiddleware
@@ -39,7 +39,8 @@ namespace Wukong.Services
                     return;
                 }
                 var websocket = await ctx.WebSockets.AcceptWebSocketAsync();
-                await socketManager.AcceptWebsocket(websocket, ctx.User);
+                var userId = ctx.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await socketManager.AcceptWebsocket(websocket, userId);
             }
             else
             {
@@ -63,9 +64,8 @@ namespace Wukong.Services
         public event UserConnect UserConnect;
         private ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
 
-        public async Task AcceptWebsocket(WebSocket webSocket, ClaimsPrincipal user)
+        public async Task AcceptWebsocket(WebSocket webSocket, string userId)
         {
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier).Value;
             ResetTimer(userId);
             verifiedSocket.AddOrUpdate(userId,
                 webSocket,
