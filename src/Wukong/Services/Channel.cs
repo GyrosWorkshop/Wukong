@@ -142,6 +142,7 @@ namespace Wukong.Services
                 nextUser = null;
                 return;
             }
+            songMap.Remove(userId);
             if (user == CurrentUser)
             {
                 CurrentUser = CurrentUser.NextOrFirst();
