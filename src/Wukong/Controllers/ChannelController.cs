@@ -26,7 +26,7 @@ namespace Wukong.Controllers
         private readonly ILogger Logger;
         private static Mutex mut = new Mutex();
         private static bool DidInitializeSocketManager = false;
-        private IDictionary<string, AsyncAutoResetEvent> startPlayingEvents = new Dictionary<string, AsyncAutoResetEvent>();
+        private IDictionary<string, AsyncManualResetEvent> startPlayingEvents = new Dictionary<string, AsyncManualResetEvent>();
 
         public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory)
         {
@@ -126,7 +126,14 @@ namespace Wukong.Controllers
             var channel = Storage.Instance.GetChannel(channelId);
             if (channel.CurrentSong == null)
             {
-                StartPlaying(channel);
+                if (startPlayingEvents.ContainsKey(channelId))
+                {
+                    startPlayingEvents[channelId].Set();
+                }
+                else 
+                {
+                    StartPlaying(channel);
+                }
             }
             else
             {
@@ -156,13 +163,14 @@ namespace Wukong.Controllers
         async private void StartMonitor(Channel channel, Song song)
         {
             Logger.LogDebug("StartMonitor", DateTime.Now, song);
-            startPlayingEvents[channel.Id] = new AsyncAutoResetEvent(false);
+            startPlayingEvents[channel.Id] = new AsyncManualResetEvent(false);
             var checker = new TimerChecker(10, startPlayingEvents[channel.Id]);
             var timer = new Timer(checker.Check, channel, (int)song.Length, 1000);
 
             await startPlayingEvents[channel.Id].WaitAsync();
             Logger.LogDebug("StartPlaying", DateTime.Now, song);
 
+            startPlayingEvents.Remove(channel.Id);
             timer.Dispose();
             StartPlaying(channel);
         }

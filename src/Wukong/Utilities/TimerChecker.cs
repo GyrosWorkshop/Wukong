@@ -7,9 +7,9 @@ namespace Wukong.Utilities
     {
         private int invokeCount = 0;
         private int max;
-        private AsyncAutoResetEvent resetEvent;
+        private AsyncManualResetEvent resetEvent;
 
-        public TimerChecker(int max, AsyncAutoResetEvent resetEvent)
+        public TimerChecker(int max, AsyncManualResetEvent resetEvent)
         {
             this.max = max;
             this.resetEvent = resetEvent;
