@@ -140,7 +140,7 @@ namespace Wukong.Services
         private void Timeout(object userId)
         {
             var id = (string)userId;
-            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => it.Disconnect(id));
+            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => it.Leave(id));
         }
 
         private void Disconnect(string userId)
