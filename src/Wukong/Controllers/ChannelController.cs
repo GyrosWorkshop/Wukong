@@ -64,15 +64,15 @@ namespace Wukong.Controllers
             EmitChannelInfo(channel, UserId);
 
             // Hmmm, may be we need a better way.
-            return new EmptyResult();
+            return new NoContentResult();
         }
 
         [HttpPost("finished/{channelId}")]
         public IActionResult Finished(string channelId)
         {
             var channel = Storage.Instance.GetChannel(channelId);
-            channel.AddFinishedUser(UserId);
-            return new EmptyResult();
+            channel.DownVote(UserId);
+            return new NoContentResult();
         }
 
         // POST api/channel/updateNextSong
@@ -81,7 +81,7 @@ namespace Wukong.Controllers
         {
             var channel = Storage.Instance.GetChannel(channelId);
             channel?.UpdateSong(UserId, song);
-            return new EmptyResult();
+            return new NoContentResult();
         }
 
         [HttpPost("downVote/{channelId}")]
@@ -89,7 +89,7 @@ namespace Wukong.Controllers
         {
             var channel = Storage.Instance.GetChannel(channelId);
             channel.DownVote(UserId);
-            return new EmptyResult();
+            return new NoContentResult();
         }
 
         private async void StartPlaying(Channel channel)
@@ -164,16 +164,9 @@ namespace Wukong.Controllers
 
         async private void StartMonitor(Channel channel, Song song)
         {
-            Logger.LogDebug("StartMonitor", DateTime.Now, song);
             startPlayingEvents[channel.Id] = new AsyncManualResetEvent(false);
-            var checker = new TimerChecker(10, startPlayingEvents[channel.Id]);
-            var timer = new Timer(checker.Check, channel, (int)song.Length, 1000);
-
             await startPlayingEvents[channel.Id].WaitAsync();
-            Logger.LogDebug("StartPlaying", DateTime.Now, song);
-
             startPlayingEvents.Remove(channel.Id);
-            timer.Dispose();
             StartPlaying(channel);
         }
 

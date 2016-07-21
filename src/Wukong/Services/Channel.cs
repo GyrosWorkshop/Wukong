@@ -14,7 +14,6 @@ namespace Wukong.Services
     {
         string channelId;
         IDictionary<string, ClientSong> songMap = new Dictionary<string, ClientSong>();
-        ISet<string> downVoteUsers = new HashSet<string>();
         ISet<string> finishedUsers = new HashSet<string>();
         LinkedList<string> userList = new LinkedList<string>();
         LinkedListNode<string> nextUser = null;
@@ -178,13 +177,8 @@ namespace Wukong.Services
 
         public void DownVote(string userId)
         {
-            downVoteUsers.Add(userId);
-            CheckShouldForwardCurrentSong();
-        }
-
-        public void AddFinishedUser(string userId)
-        {
             finishedUsers.Add(userId);
+            CheckShouldForwardCurrentSong();
         }
 
         public bool HasUser(string userId)
@@ -194,7 +188,6 @@ namespace Wukong.Services
 
         private void CleanStorage()
         {
-            downVoteUsers.Clear();
             finishedUsers.Clear();
         }
 
@@ -221,7 +214,7 @@ namespace Wukong.Services
 
         private void CheckShouldForwardCurrentSong()
         {
-            var downVoteUserCount = downVoteUsers.Intersect(userList).Count;
+            var downVoteUserCount = finishedUsers.Intersect(userList).Count;
             var userCount = userList.Count;
             if (downVoteUserCount >= userCount * 0.5)
             {
