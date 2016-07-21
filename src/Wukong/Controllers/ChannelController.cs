@@ -54,7 +54,7 @@ namespace Wukong.Controllers
 
         // POST api/channel/join
         [HttpPost("join/{channelId}")]
-        public IActionResult Join(string channelId, [FromBody] Join join)
+        public void Join(string channelId, [FromBody] Join join)
         {
             var previousChannel = Storage.Instance.GetChannel(join?.PreviousChannelId);
             previousChannel?.Leave(UserId);
@@ -62,34 +62,28 @@ namespace Wukong.Controllers
             var channel = Storage.Instance.GetChannel(channelId) ?? CreateChannel(channelId);
             channel.Join(UserId);
             EmitChannelInfo(channel, UserId);
-
-            // Hmmm, may be we need a better way.
-            return new NoContentResult();
         }
 
         [HttpPost("finished/{channelId}")]
-        public IActionResult Finished(string channelId)
+        public void Finished(string channelId)
         {
             var channel = Storage.Instance.GetChannel(channelId);
             channel.DownVote(UserId);
-            return new NoContentResult();
         }
 
         // POST api/channel/updateNextSong
         [HttpPost("updateNextSong/{channelId}")]
-        public IActionResult UpdateNextSong(string channelId, [FromBody] ClientSong song)
+        public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
             var channel = Storage.Instance.GetChannel(channelId);
             channel?.UpdateSong(UserId, song);
-            return new NoContentResult();
         }
 
         [HttpPost("downVote/{channelId}")]
-        public IActionResult DownVote(string channelId)
+        public void DownVote(string channelId)
         {
             var channel = Storage.Instance.GetChannel(channelId);
             channel.DownVote(UserId);
-            return new NoContentResult();
         }
 
         private async void StartPlaying(Channel channel)
