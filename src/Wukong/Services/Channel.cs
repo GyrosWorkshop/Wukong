@@ -63,7 +63,6 @@ namespace Wukong.Services
                         // only happens when first song to play.
                         CurrentSong = value;
                         StartPlayingCurrent();
-                        UpdateNextSong();
                     }
                 }
             }
@@ -84,10 +83,7 @@ namespace Wukong.Services
             {
                 if (CurrentUser != value)
                 {
-                    UpdateNextSong();
                     currentUser = value;
-                    CurrentSong = NextSong;
-                    UpdateNextSong();
                 }
             }
         }
@@ -220,7 +216,6 @@ namespace Wukong.Services
             CleanStorage();
             BroadcastPlayCurrentSong();
             IsFinished = CurrentSong == null;
-            UpdateNextSong();
         }
 
         private void UpdateNextSong()
@@ -252,7 +247,9 @@ namespace Wukong.Services
             {
                 IsFinished = true;
                 CurrentUser = nextUser;
+                CurrentSong = NextSong;
                 StartPlayingCurrent();
+                UpdateNextSong();
             }
         }
 
