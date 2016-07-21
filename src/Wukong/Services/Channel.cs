@@ -4,7 +4,7 @@ using System.Linq;
 using Wukong.Helpers;
 using Wukong.Models;
 using Microsoft.Extensions.Logging;
-using Nito.AsyncEx;
+using System.Threading;
 
 namespace Wukong.Services
 {
@@ -41,6 +41,7 @@ namespace Wukong.Services
 
         IDictionary<string, ClientSong> SongMap = new Dictionary<string, ClientSong>();
         ISet<string> FinishedUsers = new HashSet<string>();
+        ISet<string> DownvoteUsers = new HashSet<string>();
         LinkedList<string> userList = new LinkedList<string>();
 
         LinkedListNode<string> nextUser = null;
@@ -49,6 +50,7 @@ namespace Wukong.Services
         ClientSong CurrentSong = null;
         DateTime StartTime = DateTime.Now;
         private bool IsFinished = true;
+        private Timer FinishTimeoutTimer = null;
 
         public ClientSong NextSong
         {
@@ -193,11 +195,12 @@ namespace Wukong.Services
             }
         }
 
-        public void DownVote(string userId, ClientSong song)
+        public void ReportFinish(string userId, ClientSong song, bool force = false)
         {
             if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
                 return;
-            FinishedUsers.Add(userId);
+            if (force) DownvoteUsers.Add(userId);
+            else FinishedUsers.Add(userId);
             CheckShouldForwardCurrentSong();
         }
 
@@ -206,15 +209,11 @@ namespace Wukong.Services
             return userList.Contains(userId);
         }
 
-        private void CleanStorage()
+        private void StartPlayingCurrent()
         {
             StartTime = DateTime.Now;
             FinishedUsers.Clear();
-        }
-
-        private void StartPlayingCurrent()
-        {
-            CleanStorage();
+            DownvoteUsers.Clear();
             BroadcastPlayCurrentSong();
             IsFinished = CurrentSong == null;
         }
@@ -242,16 +241,44 @@ namespace Wukong.Services
 
         private void CheckShouldForwardCurrentSong()
         {
-            var downVoteUserCount = FinishedUsers.Intersect(userList).Count;
-            var userCount = userList.Count;
-            if (downVoteUserCount >= userCount * 0.5)
+            var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
+            var undeterminedCount = UserList.Except(DownvoteUsers).Except(FinishedUsers).Count();
+            var connectedUserCount = UserList.Select(it => SocketManager.IsConnected(it)).Count();
+            if (downVoteUserCount > QueryForceForwardCount(connectedUserCount))
             {
-                IsFinished = true;
-                CurrentUser = nextUser;
-                CurrentSong = NextSong;
-                StartPlayingCurrent();
-                UpdateNextSong();
+                ShouldForwardNow();
             }
+            else if (undeterminedCount < connectedUserCount * 0.5)
+            {
+                if (FinishTimeoutTimer != null) return;
+                FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Timeout.Infinite);
+            }
+        }
+
+        private int QueryForceForwardCount(int total)
+        {
+            switch (total)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    return 1;
+                case 3:
+                    return 2;
+                default:
+                    return Convert.ToInt32(Math.Ceiling(((double)total) / 2));
+            }
+        }
+
+        private void ShouldForwardNow(object state = null)
+        {
+            FinishTimeoutTimer?.Dispose();
+            FinishTimeoutTimer = null;
+            IsFinished = true;
+            CurrentUser = nextUser;
+            CurrentSong = NextSong;
+            StartPlayingCurrent();
+            UpdateNextSong();
         }
 
         private void BroadcastUserListUpdated(string userId = null)

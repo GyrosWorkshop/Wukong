@@ -43,7 +43,7 @@ namespace Wukong.Controllers
         public void Finished(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            Storage.Instance.GetChannel(channelId).DownVote(UserId, song);
+            Storage.Instance.GetChannel(channelId).ReportFinish(UserId, song);
         }
 
         // POST api/channel/updateNextSong
@@ -60,7 +60,7 @@ namespace Wukong.Controllers
         {
             // FIXME: test whether user joined this channel.
             var channel = Storage.Instance.GetChannel(channelId);
-            channel.DownVote(UserId, song);
+            channel.ReportFinish(UserId, song, true);
         }
     }
 }

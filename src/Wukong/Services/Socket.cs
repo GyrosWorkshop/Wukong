@@ -18,6 +18,7 @@ namespace Wukong.Services
     public interface ISocketManager
     {
         void SendMessage(List<string> userIds, WebSocketEvent obj);
+        bool IsConnected(string userId);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
     }
 
@@ -140,6 +141,7 @@ namespace Wukong.Services
         private void Timeout(object userId)
         {
             var id = (string)userId;
+            ResetTimer(id);
             Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => it.Leave(id));
         }
 
@@ -156,6 +158,11 @@ namespace Wukong.Services
                 disconnectTimer.Remove(userId);
                 timer.Dispose();
             }
+        }
+
+        public bool IsConnected(string userId)
+        {
+            return verifiedSocket.Keys.Contains(userId);
         }
     }
 }
