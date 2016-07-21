@@ -175,8 +175,10 @@ namespace Wukong.Services
             UpdateNextSong();
         }
 
-        public void DownVote(string userId)
+        public void DownVote(string userId, ClientSong song)
         {
+            if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
+                return;
             finishedUsers.Add(userId);
             CheckShouldForwardCurrentSong();
         }

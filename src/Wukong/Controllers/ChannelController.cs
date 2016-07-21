@@ -65,10 +65,10 @@ namespace Wukong.Controllers
         }
 
         [HttpPost("finished/{channelId}")]
-        public void Finished(string channelId)
+        public void Finished(string channelId, [FromBody] ClientSong song)
         {
             var channel = Storage.Instance.GetChannel(channelId);
-            channel.DownVote(UserId);
+            channel.DownVote(UserId, song);
         }
 
         // POST api/channel/updateNextSong
@@ -80,10 +80,10 @@ namespace Wukong.Controllers
         }
 
         [HttpPost("downVote/{channelId}")]
-        public void DownVote(string channelId)
+        public void DownVote(string channelId, [FromBody] ClientSong song)
         {
             var channel = Storage.Instance.GetChannel(channelId);
-            channel.DownVote(UserId);
+            channel.DownVote(UserId, song);
         }
 
         private async void StartPlaying(Channel channel)
