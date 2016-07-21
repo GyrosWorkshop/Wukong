@@ -57,6 +57,7 @@ namespace Wukong.Services
         public SocketManager(ILoggerFactory loggerFactory)
         {
             Logger = loggerFactory.CreateLogger("SockerManager");
+            Logger.LogDebug("SocketManager initialized");
         }
 
         private Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
