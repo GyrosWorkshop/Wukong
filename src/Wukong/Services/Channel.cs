@@ -244,7 +244,7 @@ namespace Wukong.Services
             var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
             var undeterminedCount = UserList.Except(DownvoteUsers).Except(FinishedUsers).Count();
             var connectedUserCount = UserList.Select(it => SocketManager.IsConnected(it)).Count();
-            if (downVoteUserCount > QueryForceForwardCount(connectedUserCount))
+            if (downVoteUserCount > QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
             {
                 ShouldForwardNow();
             }
