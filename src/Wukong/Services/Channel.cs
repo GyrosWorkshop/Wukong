@@ -248,7 +248,7 @@ namespace Wukong.Services
             {
                 ShouldForwardNow();
             }
-            else if (undeterminedCount =< connectedUserCount * 0.5)
+            else if (undeterminedCount <= connectedUserCount * 0.5)
             {
                 if (FinishTimeoutTimer != null) return;
                 FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Timeout.Infinite);
