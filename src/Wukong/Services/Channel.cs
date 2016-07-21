@@ -256,6 +256,8 @@ namespace Wukong.Services
             var userCount = userList.Count;
             if (downVoteUserCount >= userCount * 0.5)
             {
+                IsFinished = true;
+                CurrentUser = nextUser;
             }
         }
 
