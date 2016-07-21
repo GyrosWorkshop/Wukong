@@ -257,17 +257,7 @@ namespace Wukong.Services
 
         private int QueryForceForwardCount(int total)
         {
-            switch (total)
-            {
-                case 0:
-                case 1:
-                case 2:
-                    return 1;
-                case 3:
-                    return 2;
-                default:
-                    return Convert.ToInt32(Math.Ceiling(((double)total) / 2));
-            }
+            return Convert.ToInt32(Math.Ceiling(((double)total) / 2));
         }
 
         private void ShouldForwardNow(object state = null)
