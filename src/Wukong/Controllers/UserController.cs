@@ -17,17 +17,14 @@ namespace Wukong.Controllers
     [Route("api/user")]
     public class UserController : Controller
     {
-        private IOptions<UserOption> optionAccessor;
-        private IUserSongListRepository userSongListRepository;
+        private readonly IProvider Provider;
+        private IUserSongListRepository UserSongListRepository;
         private Provider provider;
 
-        public UserController(IOptions<UserOption> optionAccessor,
-            IOptions<ProviderOption> providerOption,
-            IUserSongListRepository userSongListRepository)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository)
         {
-            this.optionAccessor = optionAccessor;
-            this.userSongListRepository = userSongListRepository;
-            provider = new Provider(providerOption.Value.Url);
+            UserSongListRepository = userSongListRepository;
+            Provider = provider;
         }
 
         string UserId
@@ -57,7 +54,7 @@ namespace Wukong.Controllers
             // We need to remove duplicate songs in the song list.
             var songList = new HashSet<ClientSong>(info.Song);
             info.Song = new List<ClientSong>(songList);
-            if (await userSongListRepository.UpdateAsync(UserId, id, info))
+            if (await UserSongListRepository.UpdateAsync(UserId, id, info))
             {
                 return new EmptyResult();
             }
@@ -74,7 +71,7 @@ namespace Wukong.Controllers
             // We need to remove duplicate songs in the song list.
             var songList = new HashSet<ClientSong>(info.Song);
             info.Song = new List<ClientSong>(songList);
-            var id = await userSongListRepository.AddAsync(UserId, info);
+            var id = await UserSongListRepository.AddAsync(UserId, info);
             return new ObjectResult(new CreateSongListResponse
             {
                 Id = id
@@ -84,7 +81,7 @@ namespace Wukong.Controllers
         [HttpGet("songList/{id}")]
         public async Task<IActionResult> SongListAsyc(long id)
         {
-            var clientSongList = await userSongListRepository.GetAsync(UserId, id);
+            var clientSongList = await UserSongListRepository.GetAsync(UserId, id);
             if (clientSongList == null)
             {
                 return new NotFoundResult();
@@ -103,7 +100,7 @@ namespace Wukong.Controllers
         [HttpGet("songList")]
         public async Task<IActionResult> SongListAsyc()
         {
-            var songList = await userSongListRepository.ListAsync(UserId);
+            var songList = await UserSongListRepository.ListAsync(UserId);
             if (songList == null) return new ObjectResult(new string[0]);
             var result = songList.Select(it => new
             {

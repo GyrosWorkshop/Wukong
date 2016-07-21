@@ -3,23 +3,32 @@ using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 
 using Wukong.Models;
+using Wukong.Options;
+
 
 namespace Wukong.Services
 {
-    class Provider
+    public interface IProvider
+    {
+        Task<List<SongInfo>> Search(SearchSongRequest query);
+        Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null);
+    }
+
+    class Provider: IProvider
     {
         private HttpClient client;
         private JsonMediaTypeFormatter formatter;
 
-        public Provider(string url)
+        public Provider(IOptions<ProviderOption> option)
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri(url);
+            client.BaseAddress = new Uri(option.Value.Url);
             formatter = new JsonMediaTypeFormatter();
             formatter.SerializerSettings = new JsonSerializerSettings
             {

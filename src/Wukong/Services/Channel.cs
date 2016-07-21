@@ -3,42 +3,70 @@ using System.Collections.Generic;
 using System.Linq;
 using Wukong.Helpers;
 using Wukong.Models;
+using Microsoft.Extensions.Logging;
+using Nito.AsyncEx;
 
 namespace Wukong.Services
 {
-    public delegate void NextSongUpdated(string channelId);
-    public delegate void ShouldForwardCurrentSong(string channelId);
-    public delegate void UserListUpdated(string channelId);
+    public interface IChannelServiceFactory
+    {
+        Channel GetChannel(string channelId);
+    }
+
+    public class ChannelServiceFactory : IChannelServiceFactory
+    {
+        private readonly ILogger Logger;
+        private readonly ISocketManager SocketManager;
+        private readonly IProvider Provider;
+
+        public ChannelServiceFactory(ILoggerFactory loggerFactory, ISocketManager socketManager, IProvider provider)
+        {
+            Logger = loggerFactory.CreateLogger("ChannelServiceFactory");
+            SocketManager = socketManager;
+            Provider = provider;
+        }
+
+        public Channel GetChannel(string channelId)
+        {
+            return Storage.Instance.GetChannel(channelId) ?? Storage.Instance.CreateChannel(channelId, SocketManager, Provider);
+        }
+    }
 
     public class Channel
     {
-        string channelId;
+        private readonly string channelId;
+        private readonly ISocketManager SocketManager;
+        private readonly IProvider Provider;
+
+        private bool IsFinished = true;
+
         IDictionary<string, ClientSong> songMap = new Dictionary<string, ClientSong>();
         ISet<string> finishedUsers = new HashSet<string>();
         LinkedList<string> userList = new LinkedList<string>();
+
         LinkedListNode<string> nextUser = null;
         LinkedListNode<string> currentUser = null;
-        ClientSong nextSong = null;
-        ClientSong currentSong = null;
-        DateTime startTime = DateTime.Now;
-
-        public event NextSongUpdated NextSongUpdated;
-        public event ShouldForwardCurrentSong ShouldForwardCurrentSong;
-        public event UserListUpdated UserListUpdated;
+        ClientSong _NextSong = null;
+        ClientSong _CurrentSong = null;
+        DateTime StartTime = DateTime.Now;
 
         public ClientSong NextSong
         {
             private set
             {
-                if (nextSong != value)
+                if (_NextSong != value)
                 {
-                    nextSong = value;
+                    _NextSong = value;
                     BroadcastNextSongUpdated();
+                    if (IsFinished)
+                    {
+                        CurrentSong = value;
+                    }
                 }
             }
             get
             {
-                return nextSong;
+                return _NextSong;
             }
         }
 
@@ -51,19 +79,30 @@ namespace Wukong.Services
 
             set
             {
-                currentUser = value;
+                if (CurrentUser != value)
+                {
+                    currentUser = value;
+                    UpdateNextSong();
+                }
             }
         }
 
-        public ClientSong CurrentSong
+        private ClientSong CurrentSong
         {
-            private set
+            set
             {
-                currentSong = value;
+                if (value != null)
+                {
+                    IsFinished = false;
+                }
+                _CurrentSong = value;
+                CurrentUser = nextUser;
+                CleanStorage();
+                BroadcastPlayCurrentSong();
             }
             get
             {
-                return currentSong;
+                return _CurrentSong;
             }
         }
 
@@ -88,15 +127,7 @@ namespace Wukong.Services
         {
             get
             {
-                return (DateTime.Now - startTime).TotalSeconds;
-            }
-        }
-
-        public DateTime StartTime
-        {
-            set
-            {
-                startTime = value;
+                return (DateTime.Now - StartTime).TotalSeconds;
             }
         }
 
@@ -116,9 +147,11 @@ namespace Wukong.Services
             }
         }
 
-        public Channel(string id)
+        public Channel(string id, ISocketManager socketManager, IProvider provider)
         {
             channelId = id;
+            SocketManager = socketManager;
+            Provider = provider;
         }
 
         public void Join(string userId)
@@ -151,6 +184,16 @@ namespace Wukong.Services
             UpdateNextSong();
         }
 
+        public void Connect(string userId)
+        {
+            EmitChannelInfo(userId);
+        }
+
+        public void Disconnect(string userId)
+        {
+
+        }
+
         public void UpdateSong(string userId, ClientSong song)
         {
             if (userList.Contains(userId))
@@ -165,14 +208,6 @@ namespace Wukong.Services
                 }
                 UpdateNextSong();
             }
-        }
-
-        public void StartPlayingNextSong()
-        {
-            CurrentSong = NextSong;
-            CurrentUser = nextUser;
-            CleanStorage();
-            UpdateNextSong();
         }
 
         public void DownVote(string userId, ClientSong song)
@@ -190,6 +225,7 @@ namespace Wukong.Services
 
         private void CleanStorage()
         {
+            StartTime = DateTime.Now;
             finishedUsers.Clear();
         }
 
@@ -220,23 +256,43 @@ namespace Wukong.Services
             var userCount = userList.Count;
             if (downVoteUserCount >= userCount * 0.5)
             {
-                BroadcastShouldForwardCurrentSong();
             }
         }
 
-        private void BroadcastNextSongUpdated()
+        private void BroadcastUserListUpdated(string userId = null)
         {
-            NextSongUpdated(Id);
+            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
+                new UserListUpdated
+                {
+                    Users = UserList.Select(it => Storage.Instance.GetUser(it)).ToList()
+                });
         }
 
-        private void BroadcastShouldForwardCurrentSong()
+        private async void BroadcastNextSongUpdated(string userId = null)
         {
-            ShouldForwardCurrentSong(Id);
+            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
+                new NextSongUpdated
+                {
+                    Song = await Provider.GetSong(NextSong, true)
+                });
         }
 
-        private void BroadcastUserListUpdated()
+        private async void BroadcastPlayCurrentSong(string userId = null)
         {
-            UserListUpdated(Id);
+            var song = await Provider.GetSong(CurrentSong, true);
+            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList
+                , new Play
+                {
+                    Song = song,
+                    Elapsed = Elapsed,
+                    User = CurrentUserId
+                });
+        }
+
+        private void EmitChannelInfo(string userId)
+        {
+            BroadcastPlayCurrentSong(userId);
+            BroadcastUserListUpdated(userId);
         }
     }
 }

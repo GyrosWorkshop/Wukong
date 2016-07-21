@@ -17,8 +17,6 @@ namespace Wukong.Services
 {
     public interface ISocketManager
     {
-        event UserDisconnect UserDisconnect;
-        event UserConnect UserConnect;
         void SendMessage(List<string> userIds, WebSocketEvent obj);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
     }
@@ -49,8 +47,6 @@ namespace Wukong.Services
         }
     }
 
-    public delegate void UserDisconnect(string userId);
-    public delegate void UserConnect(string userId);
     public class SocketManager : ISocketManager
     {
         private ILogger Logger;
@@ -61,8 +57,6 @@ namespace Wukong.Services
         }
 
         private Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
-        public event UserDisconnect UserDisconnect;
-        public event UserConnect UserConnect;
         private ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId)
@@ -75,7 +69,7 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-            UserConnect(userId);
+            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Connect(userId));
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -124,7 +118,6 @@ namespace Wukong.Services
             catch (Exception ex)
             {
                 Logger.LogError(ex.ToString());
-                StartDisconnecTimer(userId);
             }
             finally
             {
@@ -134,18 +127,25 @@ namespace Wukong.Services
                 {
                     socket?.Dispose();
                 }
+                StartDisconnecTimer(userId);
             }
         }
 
         private void StartDisconnecTimer(string userId)
         {
-            disconnectTimer[userId] = new Timer(Disconnect, userId, 60 * 1000, 0);
+            Disconnect(userId);
+            disconnectTimer[userId] = new Timer(Timeout, userId, 60 * 1000, 0);
         }
 
-        private void Disconnect(object userId)
+        private void Timeout(object userId)
         {
             var id = (string)userId;
-            UserDisconnect(id);
+            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => it.Disconnect(id));
+        }
+
+        private void Disconnect(string userId)
+        {
+            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Disconnect(userId));
         }
 
         private void ResetTimer(string userId)

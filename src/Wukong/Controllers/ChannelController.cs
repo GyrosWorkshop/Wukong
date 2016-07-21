@@ -2,46 +2,25 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
-using Nito.AsyncEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Security.Claims;
 using Wukong.Services;
-using Wukong.Utilities;
 using Wukong.Models;
 using Wukong.Options;
 using Microsoft.Extensions.Logging;
 
 namespace Wukong.Controllers
 {
-
-
     [Authorize]
     [Route("api/[controller]")]
     public class ChannelController : Controller
     {
-        private readonly Provider provider;
         private readonly ILogger Logger;
-        private readonly ISocketManager SocketManager;
-        private static Mutex mut = new Mutex();
-        private static bool DidInitializeSocketManager = false;
-        private IDictionary<string, AsyncManualResetEvent> startPlayingEvents = new Dictionary<string, AsyncManualResetEvent>();
+        private readonly IChannelServiceFactory ChannelServiceFactory;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, ISocketManager socketManager)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelServiceFactory channelServiceFactory)
         {
-            this.provider = new Provider(providerOption.Value.Url);
+            ChannelServiceFactory = channelServiceFactory;
             Logger = loggerFactory.CreateLogger("ChannelController");
-            SocketManager = socketManager;
-            mut.WaitOne();
-            if (!DidInitializeSocketManager)
-            {
-                DidInitializeSocketManager = true;
-                SocketManager.UserDisconnect += UserDisconnect;
-                SocketManager.UserConnect += UserConnect;
-            }
-            mut.ReleaseMutex();
         }
 
         string UserId
@@ -56,25 +35,22 @@ namespace Wukong.Controllers
         [HttpPost("join/{channelId}")]
         public void Join(string channelId, [FromBody] Join join)
         {
-            var previousChannel = Storage.Instance.GetChannel(join?.PreviousChannelId);
-            previousChannel?.Leave(UserId);
-
-            var channel = Storage.Instance.GetChannel(channelId) ?? CreateChannel(channelId);
-            channel.Join(UserId);
-            EmitChannelInfo(channel, UserId);
+            Storage.Instance.GetChannel(join?.PreviousChannelId)?.Leave(UserId);
+            ChannelServiceFactory.GetChannel(channelId).Join(UserId);
         }
 
         [HttpPost("finished/{channelId}")]
         public void Finished(string channelId, [FromBody] ClientSong song)
         {
-            var channel = Storage.Instance.GetChannel(channelId);
-            channel.DownVote(UserId, song);
+            // FIXME: test whether user joined this channel.
+            Storage.Instance.GetChannel(channelId).DownVote(UserId, song);
         }
 
         // POST api/channel/updateNextSong
         [HttpPost("updateNextSong/{channelId}")]
         public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
+            // FIXME: test whether user joined this channel.
             var channel = Storage.Instance.GetChannel(channelId);
             channel?.UpdateSong(UserId, song);
         }
@@ -82,118 +58,9 @@ namespace Wukong.Controllers
         [HttpPost("downVote/{channelId}")]
         public void DownVote(string channelId, [FromBody] ClientSong song)
         {
+            // FIXME: test whether user joined this channel.
             var channel = Storage.Instance.GetChannel(channelId);
             channel.DownVote(UserId, song);
-        }
-
-        private async void StartPlaying(Channel channel)
-        {
-            channel.StartPlayingNextSong();
-            var song = await provider.GetSong(channel.CurrentSong, true);
-            if (song != null)
-            {
-                StartMonitor(channel, song);
-            }
-            channel.StartTime = DateTime.Now;
-            SocketManager.SendMessage(channel.UserList, new Play
-            {
-                Song = song,
-                Elapsed = 0,
-                User = channel.CurrentUserId,
-            });
-        }
-
-        private Channel CreateChannel(string channelId)
-        {
-            var channel = Storage.Instance.CreateChannel(channelId);
-            channel.ShouldForwardCurrentSong += ShouldForwardCurrentSong;
-            channel.NextSongUpdated += NextSongUpdated;
-            channel.UserListUpdated += UserListUpdated;
-            return channel;
-        }
-
-        private void ShouldForwardCurrentSong(string channelId)
-        {
-            startPlayingEvents[channelId]?.Set();
-        }
-
-        private async void NextSongUpdated(string channelId)
-        {
-            var channel = Storage.Instance.GetChannel(channelId);
-            if (channel.CurrentSong == null)
-            {
-                if (startPlayingEvents.ContainsKey(channelId))
-                {
-                    startPlayingEvents[channelId].Set();
-                }
-                else 
-                {
-                    StartPlaying(channel);
-                }
-            }
-            else
-            {
-                SocketManager.SendMessage(channel.UserList, new Wukong.Models.NextSongUpdated
-                {
-                    Song = await provider.GetSong(channel.NextSong, true),
-                });
-            }
-        }
-
-        private void UserListUpdated(string channelId)
-        {
-            var channel = Storage.Instance.GetChannel(channelId);
-            SendUserListUpdatedEvent(channel.UserList, channel.UserList);
-        }
-
-        private void SendUserListUpdatedEvent(List<string> recipients, List<string> users)
-        {
-            var objects = users.Select(i => Storage.Instance.GetUser(i)).ToList();
-
-            SocketManager.SendMessage(recipients, new Wukong.Models.UserListUpdated
-            {
-                Users = objects
-            });
-        }
-
-        async private void StartMonitor(Channel channel, Song song)
-        {
-            startPlayingEvents[channel.Id] = new AsyncManualResetEvent(false);
-            await startPlayingEvents[channel.Id].WaitAsync();
-            startPlayingEvents.Remove(channel.Id);
-            StartPlaying(channel);
-        }
-
-        private void UserDisconnect(string userId)
-        {
-            var channels = Storage.Instance.GetAllChannelsWithUserId(userId);
-            channels.ForEach(x => x.Leave(userId));
-        }
-
-        private void LeaveChannel(string userId, Channel channel)
-        {
-            channel?.Leave(userId);
-            if (channel?.UserList.Count == 0)
-            {
-                Storage.Instance.RemoveChannel(channel.Id);
-            }
-        }
-
-        private void UserConnect(string userId)
-        {
-            var channels = Storage.Instance.GetAllChannelsWithUserId(userId);
-            channels.ForEach(channel => EmitChannelInfo(channel, userId));
-        }
-
-        private async void EmitChannelInfo(Channel channel, string userId)
-        {
-            SocketManager.SendMessage(new List<string> { userId }, new Play
-            {
-                Elapsed = channel.Elapsed,
-                User = channel.CurrentUserId,
-                Song = await provider.GetSong(channel.CurrentSong, true),
-            });
-            SendUserListUpdatedEvent(new List<string> { userId }, channel.UserList);
         }
     }
 }

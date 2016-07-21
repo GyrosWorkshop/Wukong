@@ -10,16 +10,16 @@ namespace Wukong.Controllers
     [Route("api/song")]
     public class SongController : Controller
     {
-        private readonly Provider provider;
-        public SongController(IOptions<ProviderOption> providerOption)
+        private readonly IProvider Provider;
+        public SongController(IProvider provider)
         {
-            provider = new Provider(providerOption.Value.Url);
+            Provider = provider;
         }
 
         [HttpPost("search")]
         public async Task<IActionResult> Search([FromBody] SearchSongRequest query)
         {
-            var song = await provider.Search(query);
+            var song = await Provider.Search(query);
             return new ObjectResult(song);
         }
     }

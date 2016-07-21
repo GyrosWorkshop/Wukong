@@ -28,7 +28,7 @@ namespace Wukong.Models
     public class UserListUpdated : WebSocketEvent
     {
         new public string EventName = "UserListUpdated";
-        public List<User> Users;
+        public IList<User> Users;
     }
 
     public class Play : WebSocketEvent

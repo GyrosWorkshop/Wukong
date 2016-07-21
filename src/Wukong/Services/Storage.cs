@@ -52,9 +52,9 @@ namespace Wukong.Services
             return channelMap.Values.Where(x => x.HasUser(userId)).ToList();
         }
 
-        public Channel CreateChannel(string channelId)
+        public Channel CreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
         {
-            channelMap[channelId] = new Channel(channelId);
+            channelMap[channelId] = new Channel(channelId, socketManager, provider);
             return channelMap[channelId];
         }
     }
