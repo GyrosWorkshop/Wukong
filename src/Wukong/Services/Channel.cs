@@ -59,6 +59,10 @@ namespace Wukong.Services
                 {
                     _NextSong = value;
                     BroadcastNextSongUpdated();
+                    if (IsFinished)
+                    {
+                        CurrentSong = value;
+                    }
                 }
             }
             get
@@ -79,6 +83,7 @@ namespace Wukong.Services
                 if (CurrentUser != value)
                 {
                     currentUser = value;
+                    UpdateNextSong();
                 }
             }
         }
@@ -94,6 +99,7 @@ namespace Wukong.Services
                 _CurrentSong = value;
                 CleanStorage();
                 BroadcastPlayCurrentSong();
+                UpdateNextSong();
             }
             get
             {
@@ -109,15 +115,8 @@ namespace Wukong.Services
                 _IsFinished = value;
                 if (value)
                 {
-                    // make sure currentuser is correctly set.
                     UpdateNextSong();
-                    CurrentUser = nextUser;
                     CurrentSong = NextSong;
-                    UpdateNextSong();
-                }
-                else
-                {
-
                 }
             }
             get
