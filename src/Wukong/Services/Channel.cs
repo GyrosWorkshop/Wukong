@@ -148,6 +148,7 @@ namespace Wukong.Services
 
         public void Leave(string userId)
         {
+            // Fixme: remove channel when no people in.
             var user = userList.Find(userId);
             if (user == null) return;
             if (userList.Count == 1)
