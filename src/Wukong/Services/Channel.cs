@@ -38,30 +38,32 @@ namespace Wukong.Services
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
 
-        private bool _IsFinished = true;
 
-        IDictionary<string, ClientSong> songMap = new Dictionary<string, ClientSong>();
-        ISet<string> finishedUsers = new HashSet<string>();
+        IDictionary<string, ClientSong> SongMap = new Dictionary<string, ClientSong>();
+        ISet<string> FinishedUsers = new HashSet<string>();
         LinkedList<string> userList = new LinkedList<string>();
 
         LinkedListNode<string> nextUser = null;
         LinkedListNode<string> currentUser = null;
         ClientSong _NextSong = null;
-        ClientSong _CurrentSong = null;
+        ClientSong CurrentSong = null;
         DateTime StartTime = DateTime.Now;
+        private bool IsFinished = true;
 
         public ClientSong NextSong
         {
             private set
             {
-                // Fixme: when next song is the same as current.
                 if (_NextSong != value)
                 {
                     _NextSong = value;
                     BroadcastNextSongUpdated();
                     if (IsFinished)
                     {
+                        // only happens when first song to play.
                         CurrentSong = value;
+                        StartPlayingCurrent();
+                        UpdateNextSong();
                     }
                 }
             }
@@ -82,46 +84,11 @@ namespace Wukong.Services
             {
                 if (CurrentUser != value)
                 {
+                    UpdateNextSong();
                     currentUser = value;
-                    UpdateNextSong();
-                }
-            }
-        }
-
-        private ClientSong CurrentSong
-        {
-            set
-            {
-                if (value != null)
-                {
-                    IsFinished = false;
-                }
-                _CurrentSong = value;
-                CleanStorage();
-                BroadcastPlayCurrentSong();
-                UpdateNextSong();
-            }
-            get
-            {
-                return _CurrentSong;
-            }
-        }
-
-        private bool IsFinished
-        {
-            set
-            {
-                if (_IsFinished == value) return;
-                _IsFinished = value;
-                if (value)
-                {
-                    UpdateNextSong();
                     CurrentSong = NextSong;
+                    UpdateNextSong();
                 }
-            }
-            get
-            {
-                return _IsFinished;
             }
         }
 
@@ -154,7 +121,7 @@ namespace Wukong.Services
         {
             get
             {
-                return finishedUsers.IsSupersetOf(userList);
+                return FinishedUsers.IsSupersetOf(userList);
             }
         }
 
@@ -193,7 +160,7 @@ namespace Wukong.Services
                 nextUser = null;
                 return;
             }
-            songMap.Remove(userId);
+            SongMap.Remove(userId);
             if (user == CurrentUser)
             {
                 CurrentUser = CurrentUser.NextOrFirst();
@@ -219,11 +186,11 @@ namespace Wukong.Services
             {
                 if (song == null)
                 {
-                    songMap.Remove(userId);
+                    SongMap.Remove(userId);
                 }
                 else
                 {
-                    songMap[userId] = song;
+                    SongMap[userId] = song;
                 }
                 UpdateNextSong();
             }
@@ -233,7 +200,7 @@ namespace Wukong.Services
         {
             if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
                 return;
-            finishedUsers.Add(userId);
+            FinishedUsers.Add(userId);
             CheckShouldForwardCurrentSong();
         }
 
@@ -245,7 +212,15 @@ namespace Wukong.Services
         private void CleanStorage()
         {
             StartTime = DateTime.Now;
-            finishedUsers.Clear();
+            FinishedUsers.Clear();
+        }
+
+        private void StartPlayingCurrent()
+        {
+            CleanStorage();
+            BroadcastPlayCurrentSong();
+            IsFinished = CurrentSong == null;
+            UpdateNextSong();
         }
 
         private void UpdateNextSong()
@@ -258,12 +233,12 @@ namespace Wukong.Services
             }
             for (int i = 0; i < userList.Count; i++)
             {
-                if (!songMap.ContainsKey(nextUser.Value) || songMap[nextUser.Value] == null)
+                if (!SongMap.ContainsKey(nextUser.Value) || SongMap[nextUser.Value] == null)
                 {
                     nextUser = nextUser.NextOrFirst();
                     continue;
                 }
-                NextSong = songMap[nextUser.Value];
+                NextSong = SongMap[nextUser.Value];
                 return;
             }
             NextSong = null;
@@ -271,12 +246,13 @@ namespace Wukong.Services
 
         private void CheckShouldForwardCurrentSong()
         {
-            var downVoteUserCount = finishedUsers.Intersect(userList).Count;
+            var downVoteUserCount = FinishedUsers.Intersect(userList).Count;
             var userCount = userList.Count;
             if (downVoteUserCount >= userCount * 0.5)
             {
-                CurrentUser = nextUser;
                 IsFinished = true;
+                CurrentUser = nextUser;
+                StartPlayingCurrent();
             }
         }
 
