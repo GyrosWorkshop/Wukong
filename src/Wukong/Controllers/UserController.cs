@@ -19,7 +19,6 @@ namespace Wukong.Controllers
     {
         private readonly IProvider Provider;
         private IUserSongListRepository UserSongListRepository;
-        private Provider provider;
 
         public UserController(IProvider provider, IUserSongListRepository userSongListRepository)
         {
@@ -86,7 +85,7 @@ namespace Wukong.Controllers
             {
                 return new NotFoundResult();
             }
-            var songFetchTasks = clientSongList?.Song.Select(s => provider.GetSong(s)).ToArray();
+            var songFetchTasks = clientSongList?.Song.Select(s => Provider.GetSong(s)).ToArray();
             Task.WaitAll(songFetchTasks.ToArray());
             var songs = songFetchTasks.Where(t => t.Result != null).Select(t => t.Result).ToList();
             var songList = new SongList
