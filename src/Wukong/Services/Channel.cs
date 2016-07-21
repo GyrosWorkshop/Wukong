@@ -96,7 +96,6 @@ namespace Wukong.Services
                     IsFinished = false;
                 }
                 _CurrentSong = value;
-                CurrentUser = nextUser;
                 CleanStorage();
                 BroadcastPlayCurrentSong();
             }
