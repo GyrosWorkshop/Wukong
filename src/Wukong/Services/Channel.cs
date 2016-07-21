@@ -244,11 +244,11 @@ namespace Wukong.Services
             var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
             var undeterminedCount = UserList.Except(DownvoteUsers).Except(FinishedUsers).Count();
             var connectedUserCount = UserList.Select(it => SocketManager.IsConnected(it)).Count();
-            if (downVoteUserCount > QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
+            if (downVoteUserCount >= QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
             {
                 ShouldForwardNow();
             }
-            else if (undeterminedCount < connectedUserCount * 0.5)
+            else if (undeterminedCount =< connectedUserCount * 0.5)
             {
                 if (FinishTimeoutTimer != null) return;
                 FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Timeout.Infinite);
