@@ -38,7 +38,7 @@ namespace Wukong.Services
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
 
-        private bool IsFinished = true;
+        private bool _IsFinished = true;
 
         IDictionary<string, ClientSong> songMap = new Dictionary<string, ClientSong>();
         ISet<string> finishedUsers = new HashSet<string>();
@@ -54,14 +54,11 @@ namespace Wukong.Services
         {
             private set
             {
+                // Fixme: when next song is the same as current.
                 if (_NextSong != value)
                 {
                     _NextSong = value;
                     BroadcastNextSongUpdated();
-                    if (IsFinished)
-                    {
-                        CurrentSong = value;
-                    }
                 }
             }
             get
@@ -82,7 +79,6 @@ namespace Wukong.Services
                 if (CurrentUser != value)
                 {
                     currentUser = value;
-                    UpdateNextSong();
                 }
             }
         }
@@ -102,6 +98,31 @@ namespace Wukong.Services
             get
             {
                 return _CurrentSong;
+            }
+        }
+
+        private bool IsFinished
+        {
+            set
+            {
+                if (_IsFinished == value) return;
+                _IsFinished = value;
+                if (value)
+                {
+                    // make sure currentuser is correctly set.
+                    UpdateNextSong();
+                    CurrentUser = nextUser;
+                    CurrentSong = NextSong;
+                    UpdateNextSong();
+                }
+                else
+                {
+
+                }
+            }
+            get
+            {
+                return _IsFinished;
             }
         }
 
@@ -256,7 +277,6 @@ namespace Wukong.Services
             if (downVoteUserCount >= userCount * 0.5)
             {
                 IsFinished = true;
-                CurrentUser = nextUser;
             }
         }
 
