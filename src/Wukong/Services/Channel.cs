@@ -46,6 +46,7 @@ namespace Wukong.Services
 
         LinkedListNode<string> nextUser = null;
         LinkedListNode<string> currentUser = null;
+        Song NextServerSong = null;
         ClientSong _NextSong = null;
         ClientSong CurrentSong = null;
         DateTime StartTime = DateTime.Now;
@@ -282,16 +283,27 @@ namespace Wukong.Services
 
         private async void BroadcastNextSongUpdated(string userId = null)
         {
+            NextServerSong = await Provider.GetSong(NextSong, true);
             SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
                 new NextSongUpdated
                 {
-                    Song = await Provider.GetSong(NextSong, true)
+                    Song = NextServerSong
                 });
         }
 
         private async void BroadcastPlayCurrentSong(string userId = null)
         {
-            var song = await Provider.GetSong(CurrentSong, true);
+            Song song;
+            if (NextServerSong != null && 
+                NextServerSong.SiteId == CurrentSong.SiteId && 
+                NextServerSong.SongId == CurrentSong.SongId)
+            {
+                song = NextServerSong;
+            }
+            else
+            {
+                song = await Provider.GetSong(CurrentSong, true);
+            }
             SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList
                 , new Play
                 {
