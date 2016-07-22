@@ -146,6 +146,7 @@ namespace Wukong.Services
                 userList.AddLast(userId);
                 BroadcastUserListUpdated();
                 UpdateNextSong();
+                if (SocketManager.IsConnected(userId)) BroadcastPlayCurrentSong(userId);
             }
         }
 

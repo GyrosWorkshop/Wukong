@@ -62,7 +62,7 @@ namespace Wukong.Models
         public string ClientIP;
     }
 
-    public class CreateSongListResponse
+    public class CreateOrUpdateSongListResponse
     {
         public long Id;
     }

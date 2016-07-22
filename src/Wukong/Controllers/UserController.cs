@@ -55,7 +55,10 @@ namespace Wukong.Controllers
             info.Song = new List<ClientSong>(songList);
             if (await UserSongListRepository.UpdateAsync(UserId, id, info))
             {
-                return new EmptyResult();
+                return new ObjectResult(new CreateOrUpdateSongListResponse
+                {
+                    Id = id
+                });
             }
             else
             {
@@ -71,7 +74,7 @@ namespace Wukong.Controllers
             var songList = new HashSet<ClientSong>(info.Song);
             info.Song = new List<ClientSong>(songList);
             var id = await UserSongListRepository.AddAsync(UserId, info);
-            return new ObjectResult(new CreateSongListResponse
+            return new ObjectResult(new CreateOrUpdateSongListResponse
             {
                 Id = id
             });
