@@ -1,13 +1,12 @@
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Microsoft.ApplicationInsights;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json;
-
 using Wukong.Models;
 using Wukong.Options;
 
@@ -20,10 +19,11 @@ namespace Wukong.Services
         Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null);
     }
 
-    class Provider: IProvider
+    class Provider : IProvider
     {
-        private HttpClient client;
-        private JsonMediaTypeFormatter formatter;
+        private readonly HttpClient client;
+        private readonly JsonMediaTypeFormatter formatter;
+        private readonly TelemetryClient Telemetry;
 
         public Provider(IOptions<ProviderOption> option)
         {
@@ -35,20 +35,26 @@ namespace Wukong.Services
                 Formatting = Formatting.Indented,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
+            Telemetry = new TelemetryClient();
         }
 
         public async Task<List<SongInfo>> Search(SearchSongRequest query)
         {
+            var startTime = DateTime.UtcNow;
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            List<SongInfo> result = null;
             try
             {
                 var response = await client.PostAsync("api/searchSongs", query, formatter);
                 if (response.IsSuccessStatusCode)
                 {
-                    var songList = await response.Content.ReadAsAsync<List<SongInfo>>();
-                    return songList;
+                    result = await response.Content.ReadAsAsync<List<SongInfo>>();
                 }
-            } catch (Exception) { }
-            return null;
+            }
+            catch (Exception) { }
+            timer.Stop();
+            Telemetry.TrackDependency("Provider", "Search", startTime, timer.Elapsed, result != null);
+            return result;
         }
 
         public async Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null)
@@ -64,16 +70,22 @@ namespace Wukong.Services
                 WithFileUrl = requestUrl,
                 ClientIP = ip,
             };
+
+            var startTime = DateTime.UtcNow;
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            Song result = null;
             try
             {
-                var response = await client.PostAsync<GetSongRequest>("api/songInfo", request, formatter);
+                var response = await client.PostAsync("api/songInfo", request, formatter);
                 if (response.IsSuccessStatusCode)
                 {
-                    var song = await response.Content.ReadAsAsync<Song>();
-                    return song;
+                    result = await response.Content.ReadAsAsync<Song>();
                 }
-            } catch (Exception) { }
-            return null;
+            }
+            catch (Exception) { }
+            timer.Stop();
+            Telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
+            return result;
         }
     }
 }
