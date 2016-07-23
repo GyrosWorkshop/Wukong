@@ -39,12 +39,15 @@ namespace Wukong.Services
 
         public async Task<List<SongInfo>> Search(SearchSongRequest query)
         {
-            var response = await client.PostAsync<SearchSongRequest>("api/searchSongs", query, formatter);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var songList = await response.Content.ReadAsAsync<List<SongInfo>>();
-                return songList;
-            }
+                var response = await client.PostAsync("api/searchSongs", query, formatter);
+                if (response.IsSuccessStatusCode)
+                {
+                    var songList = await response.Content.ReadAsAsync<List<SongInfo>>();
+                    return songList;
+                }
+            } catch (Exception) { }
             return null;
         }
 
@@ -61,12 +64,15 @@ namespace Wukong.Services
                 WithFileUrl = requestUrl,
                 ClientIP = ip,
             };
-            var response = await client.PostAsync<GetSongRequest>("api/songInfo", request, formatter);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var song = await response.Content.ReadAsAsync<Song>();
-                return song;
-            }
+                var response = await client.PostAsync<GetSongRequest>("api/songInfo", request, formatter);
+                if (response.IsSuccessStatusCode)
+                {
+                    var song = await response.Content.ReadAsAsync<Song>();
+                    return song;
+                }
+            } catch (Exception) { }
             return null;
         }
     }
