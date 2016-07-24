@@ -50,7 +50,6 @@ namespace Wukong.Services
         ClientSong _NextSong = null;
         ClientSong CurrentSong = null;
         DateTime StartTime = DateTime.Now;
-        private bool IsFinished = true;
         private Timer FinishTimeoutTimer = null;
 
         public ClientSong NextSong
@@ -61,12 +60,6 @@ namespace Wukong.Services
                 {
                     _NextSong = value;
                     BroadcastNextSongUpdated();
-                    if (IsFinished)
-                    {
-                        // only happens when first song to play.
-                        CurrentSong = value;
-                        StartPlayingCurrent();
-                    }
                 }
             }
             get
@@ -285,11 +278,22 @@ namespace Wukong.Services
         private async void BroadcastNextSongUpdated(string userId = null)
         {
             NextServerSong = await Provider.GetSong(NextSong, true);
-            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
-                new NextSongUpdated
+            if (CurrentSong == null)
+            {
+                if (NextSong != null)
                 {
-                    Song = NextServerSong
-                });
+                    CurrentSong = NextSong;
+                    StartPlayingCurrent();
+                }
+            }
+            else
+            {
+                SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
+                    new NextSongUpdated
+                    {
+                        Song = NextServerSong
+                    });
+            }
         }
 
         private async void BroadcastPlayCurrentSong(string userId = null)
