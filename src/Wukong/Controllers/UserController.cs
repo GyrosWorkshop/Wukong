@@ -37,10 +37,6 @@ namespace Wukong.Controllers
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()
         {
-            if (!(HttpContext.User.FindFirst(ClaimTypes.Authentication).Value == "true"))
-            {
-                return new RedirectResult("/access/denied");
-            }
             var user = Storage.Instance.GetUser(UserId);
             // TODO(Leeleo3x): In the future we should make request to get more user info.
             user.UpdateFromClaims(HttpContext.User);
