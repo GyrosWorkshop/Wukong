@@ -210,7 +210,6 @@ namespace Wukong.Services
             FinishedUsers.Clear();
             DownvoteUsers.Clear();
             BroadcastPlayCurrentSong();
-            IsFinished = CurrentSong == null;
         }
 
         private void UpdateNextSong()
