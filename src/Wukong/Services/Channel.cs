@@ -258,7 +258,6 @@ namespace Wukong.Services
         {
             FinishTimeoutTimer?.Dispose();
             FinishTimeoutTimer = null;
-            IsFinished = true;
             CurrentUser = nextUser;
             CurrentSong = NextSong;
             StartPlayingCurrent();
