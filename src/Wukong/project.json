@@ -14,7 +14,6 @@
     "System.Runtime.Serialization.Primitives": "4.1.1",
     "System.Runtime.Serialization.Xml": "4.1.1",
     "Microsoft.AspNetCore.DataProtection": "1.0.0",
-    "Microsoft.AspNet.WebApi.Client": "5.2.2",
     "Microsoft.AspNetCore.WebSockets.Server": "0.1.0",
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
     "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
@@ -32,7 +31,8 @@
     "Nito.AsyncEx": "3.0.1",
     "Google.Protobuf": "3.0.0-beta3",
     "Microsoft.AspNetCore.Cors": "1.0.0",
-    "Microsoft.AspNetCore.HttpOverrides": "1.0.0"
+    "Microsoft.AspNetCore.HttpOverrides": "1.0.0",
+    "Microsoft.AspNet.WebApi.Client": "5.2.3"
   },
 
   "tools": {
