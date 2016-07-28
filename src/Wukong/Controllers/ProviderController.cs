@@ -12,7 +12,7 @@ using Wukong.Services;
 
 namespace Wukong.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("[controller]")]
     public class ProviderController : Controller
     {
