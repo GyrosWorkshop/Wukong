@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 using Wukong.Models;
 using Wukong.Options;
 
@@ -17,6 +18,7 @@ namespace Wukong.Services
     {
         Task<List<SongInfo>> Search(SearchSongRequest query);
         Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null);
+        Task<object> ApiProxy(string feature, object param, string ip = null);
     }
 
     class Provider : IProvider
@@ -85,6 +87,25 @@ namespace Wukong.Services
             catch (Exception) { }
             timer.Stop();
             Telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
+            return result;
+        }
+
+        public async Task<object> ApiProxy(string feature, object param, string ip = null)
+        {
+            var startTime = DateTime.UtcNow;
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            object result = null;
+            try
+            {
+                var response = await client.PostAsync("api/" + feature, param, formatter);
+                if (response.IsSuccessStatusCode)
+                {
+                    result = await response.Content.ReadAsAsync<object>();
+                }
+            }
+            catch (Exception) { }
+            timer.Stop();
+            Telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
             return result;
         }
     }
