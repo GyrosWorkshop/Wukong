@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,7 @@ using Wukong.Services;
 
 namespace Wukong.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("[controller]")]
     public class ProviderController : Controller
     {
@@ -24,9 +25,17 @@ namespace Wukong.Controllers
 
         // GET: /<controller>/
         [HttpPost("{feature}")]
-        public async Task<object> Index(string feature, [FromBody] JObject body)
+        public async Task<IActionResult> Index(string feature, [FromBody] JObject body)
         {
-            return await Provider.ApiProxy(feature, body);
+            var result = await Provider.ApiProxy(feature, body);
+            if (result != null)
+            {
+                return new ObjectResult(result);
+            }
+            else
+            {
+                return StatusCode(500, "ApiProxy null (feature not exists?)");
+            }
         }
     }
 }

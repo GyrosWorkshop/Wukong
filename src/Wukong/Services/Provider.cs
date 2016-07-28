@@ -103,9 +103,11 @@ namespace Wukong.Services
                     result = await response.Content.ReadAsAsync<object>();
                 }
             }
-            catch (Exception) { }
-            timer.Stop();
-            Telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
+            finally {
+                timer.Stop();
+                Telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
+            }
+
             return result;
         }
     }
