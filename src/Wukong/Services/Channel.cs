@@ -84,6 +84,14 @@ namespace Wukong.Services
             }
         }
 
+        public bool Empty
+        {
+            get
+            {
+                return userList.Count == 0;
+            }
+        }
+
         public List<string> UserList
         {
             get

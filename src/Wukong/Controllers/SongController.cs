@@ -19,6 +19,7 @@ namespace Wukong.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> Search([FromBody] SearchSongRequest query)
         {
+            HttpContext.Authentication.SignInAsync()
             var song = await Provider.Search(query);
             return new ObjectResult(song);
         }

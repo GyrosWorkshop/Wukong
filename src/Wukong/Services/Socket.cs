@@ -142,7 +142,16 @@ namespace Wukong.Services
         {
             var id = (string)userId;
             ResetTimer(id);
-            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => it.Leave(id));
+            List<string> emptyChannels = new List<string>();
+            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => 
+            {
+                it.Leave(id);
+                if (it.Empty)
+                {
+                    emptyChannels.Append(it.Id);
+                }
+            });
+            emptyChannels.ForEach(ch => Storage.Instance.RemoveChannel(ch));
         }
 
         private void Disconnect(string userId)
