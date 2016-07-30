@@ -233,13 +233,15 @@ namespace Wukong.Services
             }
             for (int i = 0; i < userList.Count; i++)
             {
-                if (!SongMap.ContainsKey(nextUser.Value) || SongMap[nextUser.Value] == null)
+                if (SongMap.ContainsKey(nextUser.Value) && SongMap[nextUser.Value] != null)
+                {
+                    NextSong = SongMap[nextUser.Value];
+                    return;
+                }
+                else
                 {
                     nextUser = nextUser.NextOrFirst();
-                    continue;
                 }
-                NextSong = SongMap[nextUser.Value];
-                return;
             }
             NextSong = null;
         }
@@ -308,6 +310,10 @@ namespace Wukong.Services
         private async void BroadcastPlayCurrentSong(string userId = null)
         {
             Song song;
+            if (CurrentSong == null)
+            {
+                CurrentSong = NextSong;
+            }
             if (NextServerSong != null && 
                 NextServerSong.SiteId == CurrentSong.SiteId && 
                 NextServerSong.SongId == CurrentSong.SongId)
