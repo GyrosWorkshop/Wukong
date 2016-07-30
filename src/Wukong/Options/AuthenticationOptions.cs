@@ -20,7 +20,7 @@ namespace Wukong.Options
                     OnRedirectToLogin = async (context) =>
                     {
                         context.HttpContext.Response.StatusCode = 401;
-                        await context.HttpContext.Response.WriteAsync("");
+                        await context.HttpContext.Response.WriteAsync("Unauthorized");
                     }
                 }
             };
