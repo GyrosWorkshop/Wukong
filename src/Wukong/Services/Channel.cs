@@ -195,11 +195,7 @@ namespace Wukong.Services
                     SongMap[userId] = song;
                 }
                 UpdateNextSong();
-
-                if (CurrentSong == null)
-                {
-                    BroadcastPlayCurrentSong();
-                }
+                BroadcastNextSongUpdated();
             }
         }
 
