@@ -243,14 +243,6 @@ namespace Wukong.Services
             return userList.Contains(userId);
         }
 
-        private void StartPlayingCurrent()
-        {
-            StartTime = DateTime.Now;
-            FinishedUsers.Clear();
-            DownvoteUsers.Clear();
-            BroadcastPlayCurrentSong();
-        }
-
         private void CheckShouldForwardCurrentSong()
         {
             var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
@@ -270,6 +262,14 @@ namespace Wukong.Services
         private int QueryForceForwardCount(int total)
         {
             return Convert.ToInt32(Math.Ceiling(((double)total) / 2));
+        }
+
+        private void StartPlayingCurrent()
+        {
+            StartTime = DateTime.Now;
+            FinishedUsers.Clear();
+            DownvoteUsers.Clear();
+            BroadcastPlayCurrentSong();
         }
 
         private void ShouldForwardNow(object state = null)
@@ -337,6 +337,7 @@ namespace Wukong.Services
         private void EmitChannelInfo(string userId)
         {
             BroadcastPlayCurrentSong(userId);
+            BroadcastNextSongUpdated(userId);
             BroadcastUserListUpdated(userId);
         }
     }
