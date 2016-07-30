@@ -202,8 +202,11 @@ namespace Wukong.Services
         {
             if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
                 return;
-            if (force) DownvoteUsers.Add(userId);
-            else FinishedUsers.Add(userId);
+            if (force)
+                DownvoteUsers.Add(userId);
+            else
+                FinishedUsers.Add(userId);
+
             CheckShouldForwardCurrentSong();
         }
 
