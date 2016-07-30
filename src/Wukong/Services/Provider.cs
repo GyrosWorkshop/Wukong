@@ -86,7 +86,7 @@ namespace Wukong.Services
                     if (response.IsSuccessStatusCode)
                     {
                         result = await response.Content.ReadAsAsync<Song>();
-                        if (result == null) throw new Exception('song null');
+                        if (result == null) throw new Exception("song null");
                     }
                 }
                 catch (Exception ex)
