@@ -315,10 +315,6 @@ namespace Wukong.Services
         private async void BroadcastPlayCurrentSong(string userId = null)
         {
             Song song;
-            if (CurrentSong == null)
-            {
-                CurrentSong = NextSong;
-            }
             if (NextServerSong != null && 
                 NextServerSong.SiteId == CurrentSong.SiteId && 
                 NextServerSong.SongId == CurrentSong.SongId)
