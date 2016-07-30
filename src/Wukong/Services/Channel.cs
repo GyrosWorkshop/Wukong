@@ -203,6 +203,29 @@ namespace Wukong.Services
             }
         }
 
+        private void UpdateNextSong()
+        {
+            nextUser = CurrentUser.NextOrFirst();
+            if (nextUser == null)
+            {
+                NextSong = null;
+                return;
+            }
+            for (int i = 0; i < userList.Count; i++)
+            {
+                if (SongMap.ContainsKey(nextUser.Value) && SongMap[nextUser.Value] != null)
+                {
+                    NextSong = SongMap[nextUser.Value];
+                    return;
+                }
+                else
+                {
+                    nextUser = nextUser.NextOrFirst();
+                }
+            }
+            NextSong = null;
+        }
+
         public void ReportFinish(string userId, ClientSong song, bool force = false)
         {
             if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
@@ -226,29 +249,6 @@ namespace Wukong.Services
             FinishedUsers.Clear();
             DownvoteUsers.Clear();
             BroadcastPlayCurrentSong();
-        }
-
-        private void UpdateNextSong()
-        {
-            nextUser = CurrentUser.NextOrFirst();
-            if (nextUser == null)
-            {
-                NextSong = null;
-                return;
-            }
-            for (int i = 0; i < userList.Count; i++)
-            {
-                if (SongMap.ContainsKey(nextUser.Value) && SongMap[nextUser.Value] != null)
-                {
-                    NextSong = SongMap[nextUser.Value];
-                    return;
-                }
-                else
-                {
-                    nextUser = nextUser.NextOrFirst();
-                }
-            }
-            NextSong = null;
         }
 
         private void CheckShouldForwardCurrentSong()
