@@ -195,7 +195,6 @@ namespace Wukong.Services
                     SongMap[userId] = song;
                 }
                 UpdateNextSong();
-                BroadcastNextSongUpdated();
             }
         }
 
