@@ -221,16 +221,16 @@ namespace Wukong.Services
             NextSong = null;
         }
 
-        public void ReportFinish(string userId, ClientSong song, bool force = false)
+        public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
             if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
-                return;
+                return false;
             if (force)
                 DownvoteUsers.Add(userId);
             else
                 FinishedUsers.Add(userId);
-
             CheckShouldForwardCurrentSong();
+            return true;
         }
 
         public bool HasUser(string userId)

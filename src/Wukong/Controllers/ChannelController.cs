@@ -40,10 +40,12 @@ namespace Wukong.Controllers
         }
 
         [HttpPost("finished/{channelId}")]
-        public void Finished(string channelId, [FromBody] ClientSong song)
+        public ActionResult Finished(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            Storage.Instance.GetChannel(channelId).ReportFinish(UserId, song);
+            var success = Storage.Instance.GetChannel(channelId).ReportFinish(UserId, song);
+            if (success) return NoContent();
+            else return BadRequest();
         }
 
         // POST api/channel/updateNextSong
@@ -56,11 +58,13 @@ namespace Wukong.Controllers
         }
 
         [HttpPost("downVote/{channelId}")]
-        public void DownVote(string channelId, [FromBody] ClientSong song)
+        public ActionResult DownVote(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
             var channel = Storage.Instance.GetChannel(channelId);
-            channel.ReportFinish(UserId, song, true);
+            var success = channel.ReportFinish(UserId, song, true);
+            if (success) return NoContent();
+            else return BadRequest();
         }
     }
 }
