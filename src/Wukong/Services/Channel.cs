@@ -223,7 +223,12 @@ namespace Wukong.Services
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (song == null || CurrentSong == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
+            if (CurrentSong == null)
+            {
+                ShouldForwardNow();
+                return true;
+            }
+            if (song == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
                 return false;
             if (force)
                 DownvoteUsers.Add(userId);
