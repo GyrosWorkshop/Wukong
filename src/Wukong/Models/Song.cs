@@ -41,6 +41,7 @@ namespace Wukong.Models
     {
         public string File;
         public double Length;
+        public int Bitrate;
     }
 
     public class SongInfo : ClientSong
