@@ -56,11 +56,9 @@ namespace Wukong.Services
         {
             private set
             {
-                if (_NextSong != value)
-                {
-                    _NextSong = value;
-                    BroadcastNextSongUpdated();
-                }
+                if (_NextSong == value) return;
+                _NextSong = value;
+                BroadcastNextSongUpdated();
             }
             get
             {
@@ -84,54 +82,23 @@ namespace Wukong.Services
             }
         }
 
-        public bool Empty
-        {
-            get
-            {
-                return userList.Count == 0;
-            }
-        }
+        public bool Empty => userList.Count == 0;
 
-        public List<string> UserList
+        public IEnumerable<string> UserList
         {
             get
             {
-                // WTF.
                 return userList.Select(i => i).ToList();
             }
         }
 
-        public string CurrentUserId
-        {
-            get
-            {
-                return CurrentUser?.Value;
-            }
-        }
+        public string CurrentUserId => CurrentUser?.Value;
 
-        public double Elapsed
-        {
-            get
-            {
-                return (DateTime.Now - StartTime).TotalSeconds;
-            }
-        }
+        public double Elapsed => (DateTime.Now - StartTime).TotalSeconds;
 
-        public bool IsIdle
-        {
-            get
-            {
-                return FinishedUsers.IsSupersetOf(userList);
-            }
-        }
+        public bool IsIdle => FinishedUsers.IsSupersetOf(userList);
 
-        public string Id
-        {
-            get
-            {
-                return channelId;
-            }
-        }
+        public string Id => channelId;
 
         public Channel(string id, ISocketManager socketManager, IProvider provider)
         {
@@ -284,7 +251,7 @@ namespace Wukong.Services
 
         private void BroadcastUserListUpdated(string userId = null)
         {
-            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
+            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
                 new UserListUpdated
                 {
                     Users = UserList.Select(it => Storage.Instance.GetUser(it)).ToList()
@@ -304,7 +271,7 @@ namespace Wukong.Services
             }
             else
             {
-                SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList,
+                SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
                     new NextSongUpdated
                     {
                         Song = NextServerSong
@@ -315,8 +282,8 @@ namespace Wukong.Services
         private async void BroadcastPlayCurrentSong(string userId = null)
         {
             Song song;
-            if (NextServerSong != null && 
-                NextServerSong.SiteId == CurrentSong.SiteId && 
+            if (NextServerSong != null &&
+                NextServerSong.SiteId == CurrentSong.SiteId &&
                 NextServerSong.SongId == CurrentSong.SongId)
             {
                 song = NextServerSong;
@@ -325,7 +292,7 @@ namespace Wukong.Services
             {
                 song = await Provider.GetSong(CurrentSong, true);
             }
-            SocketManager.SendMessage(userId != null ? new List<string> { userId } : UserList
+            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
                 , new Play
                 {
                     Song = song,

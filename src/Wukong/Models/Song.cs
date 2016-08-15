@@ -12,16 +12,39 @@ namespace Wukong.Models
             {
                 return false;
             }
+            var song = obj as ClientSong;
+            if (song == null)
+            {
+                return false;
+            }
 
-            return SongId == ((ClientSong)obj).SongId && SiteId == ((ClientSong)obj).SiteId;
+            return SongId == song.SongId && SiteId == song.SiteId;
         }
 
         public override int GetHashCode()
         {
-            int hash = 17;
+            var hash = 17;
             hash = hash * 23 + SongId.GetHashCode();
             hash = hash * 23 + SiteId.GetHashCode();
             return hash;
+        }
+
+        public static bool operator ==(ClientSong a, ClientSong b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if ((object) a == null || (object) b == null)
+            {
+                return false;
+            }
+            return a.Equals(b);
+        }
+
+        public static bool operator !=(ClientSong a, ClientSong b)
+        {
+            return !(a == b);
         }
     }
 
