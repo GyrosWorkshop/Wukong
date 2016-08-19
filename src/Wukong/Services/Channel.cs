@@ -303,9 +303,9 @@ namespace Wukong.Services
 
         private void EmitChannelInfo(string userId)
         {
-            BroadcastPlayCurrentSong(userId);
-            BroadcastNextSongUpdated(userId);
             BroadcastUserListUpdated(userId);
+            BroadcastNextSongUpdated(userId);
+            BroadcastPlayCurrentSong(userId);
         }
     }
 }
