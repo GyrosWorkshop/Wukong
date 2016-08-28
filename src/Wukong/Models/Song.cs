@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 namespace Wukong.Models
 {
@@ -10,17 +11,13 @@ namespace Wukong.Models
         // override object.Equals
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
             var song = obj as ClientSong;
-            if (song == null)
+            if (null == song)
             {
                 return false;
             }
 
-            return SongId == song.SongId && SiteId == song.SiteId;
+            return SiteId == song.SiteId && SongId == song.SongId;
         }
 
         public override int GetHashCode()

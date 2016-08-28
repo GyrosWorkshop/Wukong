@@ -292,13 +292,16 @@ namespace Wukong.Services
             {
                 song = await Provider.GetSong(CurrentSong, true);
             }
+            ClientSong currentUserSong;
+            SongMap.TryGetValue(CurrentUserId, out currentUserSong);
+            var user = !ReferenceEquals(null, currentUserSong) && currentUserSong.Equals(song) ? CurrentUserId : null;
             SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
                 , new Play
                 {
                     Downvote = DownvoteUsers.Contains(userId),
                     Song = song,
                     Elapsed = Elapsed,
-                    User = CurrentUserId
+                    User = user
                 });
         }
 
