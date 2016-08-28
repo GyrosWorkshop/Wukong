@@ -112,10 +112,10 @@ namespace Wukong.Services
             if (!userList.Contains(userId))
             {
                 userList.AddLast(userId);
-                BroadcastUserListUpdated();
                 UpdateNextSong();
                 if (SocketManager.IsConnected(userId)) BroadcastPlayCurrentSong(userId);
             }
+            BroadcastUserListUpdated();
         }
 
         public void Leave(string userId)
