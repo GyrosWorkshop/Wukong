@@ -49,6 +49,7 @@ namespace Wukong.Services
         Song NextServerSong = null;
         ClientSong _NextSong = null;
         ClientSong CurrentSong = null;
+        private string CurrentSongUser;
         DateTime StartTime = DateTime.Now;
         private Timer FinishTimeoutTimer = null;
 
@@ -65,6 +66,8 @@ namespace Wukong.Services
                 return _NextSong;
             }
         }
+
+        private string NextSongUser;
 
         private LinkedListNode<string> CurrentUser
         {
@@ -178,6 +181,7 @@ namespace Wukong.Services
                 if (SongMap.ContainsKey(nextUser.Value) && SongMap[nextUser.Value] != null)
                 {
                     NextSong = SongMap[nextUser.Value];
+                    NextSongUser = nextUser.Value;
                     return;
                 }
                 else
@@ -245,6 +249,7 @@ namespace Wukong.Services
             FinishTimeoutTimer = null;
             CurrentUser = nextUser;
             CurrentSong = NextSong;
+            CurrentSongUser = NextSongUser;
             StartPlayingCurrent();
             UpdateNextSong();
         }
@@ -266,6 +271,7 @@ namespace Wukong.Services
                 if (NextSong != null)
                 {
                     CurrentSong = NextSong;
+                    CurrentSongUser = NextSongUser;
                     StartPlayingCurrent();
                 }
             }
@@ -292,16 +298,18 @@ namespace Wukong.Services
             {
                 song = await Provider.GetSong(CurrentSong, true);
             }
-            ClientSong currentUserSong;
-            SongMap.TryGetValue(CurrentUserId, out currentUserSong);
-            var user = !ReferenceEquals(null, currentUserSong) && currentUserSong.Equals(song) ? CurrentUserId : null;
+            if (null == song)
+            {
+                return;
+            }
+            
             SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
                 , new Play
                 {
                     Downvote = DownvoteUsers.Contains(userId),
                     Song = song,
                     Elapsed = Elapsed,
-                    User = user
+                    User = CurrentSongUser
                 });
         }
 
