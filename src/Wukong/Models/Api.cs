@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Wukong.Models
@@ -34,6 +35,7 @@ namespace Wukong.Models
     public class Play : WebSocketEvent
     {
         new public string EventName = "Play";
+        public Boolean Downvoted;
         public Song Song;
         public double Elapsed;
         public string User;

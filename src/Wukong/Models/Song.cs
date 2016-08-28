@@ -1,3 +1,5 @@
+using System;
+
 namespace Wukong.Models
 {
     public class ClientSong
