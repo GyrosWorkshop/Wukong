@@ -295,7 +295,7 @@ namespace Wukong.Services
             SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
                 , new Play
                 {
-                    Downvoted = DownvoteUsers.Contains(userId),
+                    Downvote = DownvoteUsers.Contains(userId),
                     Song = song,
                     Elapsed = Elapsed,
                     User = CurrentUserId

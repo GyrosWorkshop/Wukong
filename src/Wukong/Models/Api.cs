@@ -35,7 +35,7 @@ namespace Wukong.Models
     public class Play : WebSocketEvent
     {
         new public string EventName = "Play";
-        public Boolean Downvoted;
+        public Boolean Downvote;
         public Song Song;
         public double Elapsed;
         public string User;
