@@ -50,9 +50,14 @@ namespace Wukong.Services
 
     public class SocketManager : ISocketManager
     {
-        private ILogger Logger;
-        public SocketManager(ILoggerFactory loggerFactory)
+        private readonly ILogger Logger;
+        private readonly IChannelManager ChannelManager;
+
+        public SocketManager(ILoggerFactory loggerFactory, IChannelManager channelManager)
         {
+            ChannelManager = channelManager;
+            ChannelManager.SocketManager = this; 
+            //TODO: this is NOT a good disign.
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
         }
@@ -135,23 +140,19 @@ namespace Wukong.Services
         private void StartDisconnecTimer(string userId)
         {
             Disconnect(userId);
-            disconnectTimer[userId] = new Timer(Timeout, userId, 60 * 1000, 0);
+            disconnectTimer[userId] = new Timer(Timeout, userId, 15 * 1000, 0);
         }
 
         private void Timeout(object userId)
         {
             var id = (string)userId;
+            Logger.LogInformation($"user {id} timeout.");
             ResetTimer(id);
-            List<string> emptyChannels = new List<string>();
+            // TODO: do not query channels by user.
             Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => 
             {
-                it.Leave(id);
-                if (it.Empty)
-                {
-                    emptyChannels.Append(it.Id);
-                }
+                ChannelManager.Leave(it.Id, id);
             });
-            emptyChannels.ForEach(ch => Storage.Instance.RemoveChannel(ch));
         }
 
         private void Disconnect(string userId)

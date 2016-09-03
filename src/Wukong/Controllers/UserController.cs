@@ -26,13 +26,7 @@ namespace Wukong.Controllers
             Provider = provider;
         }
 
-        string UserId
-        {
-            get
-            {
-                return HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            }
-        }
+        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()

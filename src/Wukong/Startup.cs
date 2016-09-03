@@ -66,6 +66,7 @@ namespace Wukong
             services.AddSingleton<ISocketManager, SocketManager>();
             services.AddSingleton<IChannelServiceFactory, ChannelServiceFactory>();
             services.AddSingleton<IProvider, Provider>();
+            services.AddSingleton<IChannelManager, ChannelManager>();
             // services.Configure<MvcOptions>(options =>
             // {
             //     options.Filters.Add(new RequireHttpsAttribute ());

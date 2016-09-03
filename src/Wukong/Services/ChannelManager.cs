@@ -1,31 +1,53 @@
+using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Wukong.Services
 {
-//    interface IChannelManager
-//    {
-//        
-//    }
-//    public class ChannelManager : IChannelManager
-//    {
-//        private ISocketManager socketManager;
-//        private IProvider provider;
-//        public ChannelManager(ISocketManager socketManager, IProvider provider)
-//        {
-//            this.socketManager = socketManager;
-//            this.provider = provider;
-//        }
-//        public void Join(string channelId, string userId)
-//        {
-//            var channel = Storage.Instance.GetChannel(channelId) ?? 
-//                Storage.Instance.CreateChannel(channelId, socketManager, provider);
-//            if (channel.UserList.Contains(userId)) {
-//            }
-//       }
-//
-//       public void BroadCastUserList(Channel channel, string userId = null)
-//       {
-//           var userList = userId != null ? new List<string> { userId } : channel.UserList;
-//       }
-//    }
+    public interface IChannelManager
+    {
+        void Join(string channelId, string userId);
+        void Leave(string channelId, string userId);
+        ISocketManager SocketManager { set; }
+    }
+    public class ChannelManager : IChannelManager
+    {
+        private IProvider provider;
+        private readonly ILogger Logger;
+
+        public ISocketManager SocketManager { get; set; }
+
+        public ChannelManager(IProvider provider, ILoggerFactory loggerFactory)
+        {
+            this.provider = provider;
+            Logger = loggerFactory.CreateLogger<ChannelManager>();
+        }
+        public void Join(string channelId, string userId)
+        {
+            var channel = Storage.Instance.GetChannel(channelId) ?? 
+                Storage.Instance.CreateChannel(channelId, SocketManager, provider);
+            channel.Join(userId);
+       }
+
+       public void BroadCastUserList(Channel channel, string userId = null)
+       {
+           var userList = userId != null ? new List<string> { userId } : channel.UserList;
+       }
+
+        public void Leave(string channelId, string userId)
+        {
+            var channel = Storage.Instance.GetChannel(channelId);
+            if (channel != null)
+            {
+                channel.Leave(userId);
+                if (channel.Empty)
+                {
+                    Logger.LogInformation($"Channel {channel.Id} removed.");
+                    Storage.Instance.RemoveChannel(channelId);
+                }
+            }
+        }
+
+    }
 }

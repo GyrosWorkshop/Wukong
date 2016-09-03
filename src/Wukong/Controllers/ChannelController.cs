@@ -16,27 +16,23 @@ namespace Wukong.Controllers
     {
         private readonly ILogger Logger;
         private readonly IChannelServiceFactory ChannelServiceFactory;
+        private readonly IChannelManager ChannelManager;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelServiceFactory channelServiceFactory)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelServiceFactory channelServiceFactory, IChannelManager channelManager)
         {
             ChannelServiceFactory = channelServiceFactory;
             Logger = loggerFactory.CreateLogger("ChannelController");
+            ChannelManager = channelManager;
         }
 
-        string UserId
-        {
-            get
-            {
-                return HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            }
-        }
+        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         // POST api/channel/join
         [HttpPost("join/{channelId}")]
         public void Join(string channelId, [FromBody] Join join)
         {
-            Storage.Instance.GetChannel(join?.PreviousChannelId)?.Leave(UserId);
-            ChannelServiceFactory.GetChannel(channelId).Join(UserId);
+            ChannelManager.Leave(channelId, UserId);
+            ChannelManager.Join(channelId, UserId);
         }
 
         [HttpPost("finished/{channelId}")]
