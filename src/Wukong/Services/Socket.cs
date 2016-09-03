@@ -57,7 +57,7 @@ namespace Wukong.Services
         {
             ChannelManager = channelManager;
             ChannelManager.SocketManager = this; 
-            //TODO: this is NOT a good disign.
+            // TODO: this is NOT a good design.
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
         }
