@@ -31,7 +31,7 @@ namespace Wukong.Controllers
         [HttpPost("join/{channelId}")]
         public void Join(string channelId, [FromBody] Join join)
         {
-            ChannelManager.Leave(channelId, UserId);
+            ChannelManager.Leave(join.PreviousChannelId, UserId);
             ChannelManager.Join(channelId, UserId);
         }
 
