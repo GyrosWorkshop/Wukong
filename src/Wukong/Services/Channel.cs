@@ -123,7 +123,7 @@ namespace Wukong.Services
 
         public void Leave(string userId)
         {
-            // Fixme: remove channel when no people in.
+            // TODO: remove channel when no people in.
             var user = userList.Find(userId);
             if (user == null) return;
             if (userList.Count == 1)
@@ -259,6 +259,7 @@ namespace Wukong.Services
             SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
                 new UserListUpdated
                 {
+                    ChannelId = channelId,
                     Users = UserList.Select(it => Storage.Instance.GetUser(it)).ToList()
                 });
         }
@@ -280,6 +281,7 @@ namespace Wukong.Services
                 SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
                     new NextSongUpdated
                     {
+                        ChannelId = channelId,
                         Song = NextServerSong
                     });
             }
@@ -306,6 +308,7 @@ namespace Wukong.Services
             SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
                 , new Play
                 {
+                    ChannelId = channelId,
                     Downvote = DownvoteUsers.Contains(userId),
                     Song = song,
                     Elapsed = Elapsed,

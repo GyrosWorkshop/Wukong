@@ -23,18 +23,21 @@ namespace Wukong.Models
     public class NextSongUpdated : WebSocketEvent
     {
         new public string EventName = "NextSongUpdate";
+        public string ChannelId;
         public Song Song;
     }
 
     public class UserListUpdated : WebSocketEvent
     {
         new public string EventName = "UserListUpdated";
+        public string ChannelId;
         public IList<User> Users;
     }
 
     public class Play : WebSocketEvent
     {
         new public string EventName = "Play";
+        public string ChannelId;
         public Boolean Downvote;
         public Song Song;
         public double Elapsed;
