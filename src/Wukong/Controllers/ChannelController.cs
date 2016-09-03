@@ -15,12 +15,10 @@ namespace Wukong.Controllers
     public class ChannelController : Controller
     {
         private readonly ILogger Logger;
-        private readonly IChannelServiceFactory ChannelServiceFactory;
         private readonly IChannelManager ChannelManager;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelServiceFactory channelServiceFactory, IChannelManager channelManager)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager)
         {
-            ChannelServiceFactory = channelServiceFactory;
             Logger = loggerFactory.CreateLogger("ChannelController");
             ChannelManager = channelManager;
         }
@@ -39,8 +37,8 @@ namespace Wukong.Controllers
         public ActionResult Finished(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            var success = Storage.Instance.GetChannel(channelId).ReportFinish(UserId, song);
-            if (success) return NoContent();
+            var success = Storage.Instance.GetChannel(channelId)?.ReportFinish(UserId, song);
+            if (success == true) return NoContent();
             else return BadRequest();
         }
 
@@ -58,8 +56,8 @@ namespace Wukong.Controllers
         {
             // FIXME: test whether user joined this channel.
             var channel = Storage.Instance.GetChannel(channelId);
-            var success = channel.ReportFinish(UserId, song, true);
-            if (success) return NoContent();
+            var success = channel?.ReportFinish(UserId, song, true);
+            if (success == true) return NoContent();
             else return BadRequest();
         }
     }

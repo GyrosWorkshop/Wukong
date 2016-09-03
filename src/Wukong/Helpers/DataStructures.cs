@@ -4,18 +4,19 @@ namespace Wukong.Helpers
 {
     public static class Helpers
     {
-        public static LinkedListNode<string> NextOrFirst(this LinkedListNode<string> current)
+        public static LinkedListNode<T> NextOrFirst<T>(this LinkedListNode<T> current, LinkedList<T> list)
         {
-            if (current?.Next == null)
+            if (current?.List == null) return list.First;
+            if (current.Next == null)
             {
-                return current?.List?.First;
+                return current.List?.First;
             }
-            return current?.Next;
+            return current.Next;
         }
 
-        public static ISet<string> Intersect(this ISet<string> a, IEnumerable<string> b)
+        public static ISet<T> Intersect<T>(this ISet<T> a, IEnumerable<T> b)
         {
-            var tmp = new HashSet<string>(a);
+            var tmp = new HashSet<T>(a);
             tmp.IntersectWith(b);
             return tmp;
         }

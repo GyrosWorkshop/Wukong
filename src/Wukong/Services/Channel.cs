@@ -1,145 +1,228 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
+using System.Threading.Tasks;
 using Wukong.Helpers;
 using Wukong.Models;
 
 namespace Wukong.Services
 {
-    public interface IChannelServiceFactory
+    internal class UserSong
     {
-        Channel GetChannel(string channelId);
-    }
+        public delegate void ClientSongChangedHandler(UserSong userSong, ClientSong previousSong);
+        public event ClientSongChangedHandler ClientSongChanged;
 
-    public class ChannelServiceFactory : IChannelServiceFactory
-    {
-        private readonly ILogger Logger;
-        private readonly ISocketManager SocketManager;
-        private readonly IProvider Provider;
+        public readonly string UserId;
+        private ClientSong _song;
 
-        public ChannelServiceFactory(ILoggerFactory loggerFactory, ISocketManager socketManager, IProvider provider)
+        public ClientSong Song
         {
-            Logger = loggerFactory.CreateLogger("ChannelServiceFactory");
-            SocketManager = socketManager;
-            Provider = provider;
+            get { return _song; }
+            set
+            {
+                var previous = _song;
+                _song = value;
+                OnSongChanged(previous);
+            }
         }
 
-        public Channel GetChannel(string channelId)
+        public UserSong(string userId)
         {
-            return Storage.Instance.GetChannel(channelId) ?? Storage.Instance.CreateChannel(channelId, SocketManager, Provider);
+            UserId = userId;
+        }
+
+        private void OnSongChanged(ClientSong previous)
+        {
+            ClientSongChanged?.Invoke(this, previous);
+        }
+
+        public UserSong Clone()
+        {
+            return new UserSong(UserId)
+            {
+                Song = Song
+            };
+        }
+    }
+
+    internal class ChannelUserList
+    {
+        private static readonly object UserListLock = new object();
+
+
+        public delegate void UserListChangedHandler(bool add, string userId);
+
+        public event UserListChangedHandler UserChanged;
+
+        public delegate void CurrentChangedHandler(UserSong userSong);
+
+        public event CurrentChangedHandler CurrentChanged;
+
+        public delegate void NextSongChangedHandler(ClientSong song);
+
+        public event NextSongChangedHandler NextChanged;
+
+        private readonly LinkedList<UserSong> List = new LinkedList<UserSong>();
+        private LinkedListNode<UserSong> _current;
+        private LinkedListNode<UserSong> Current
+        {
+            get { return _current; }
+            set
+            {
+                _current = value;
+                CurrentPlayingChanged();
+            }
+        }
+
+        public UserSong CurrentPlaying { get; private set; }
+        public bool IsPlaying => CurrentPlaying?.Song != null;
+        public bool Empty => List.Count == 0;
+        public List<string> UserList => List.Select(it => it.UserId).ToList();
+        private UserSong Next => (Current?.Next ?? List.First)?.Value;
+        public ClientSong NextSong { get; private set; }
+
+        private void RefreshNextSong()
+        {
+            var next = FindNext(Current);
+            if (NextSong != next?.Value?.Song)
+            {
+                NextSong = next?.Value?.Song;
+                NextChanged?.Invoke(NextSong);
+            }
+        }
+
+        private void CurrentPlayingChanged()
+        {
+            CurrentPlaying = Current?.Value?.Clone();
+            CurrentChanged?.Invoke(CurrentPlaying?.Clone());
+            RefreshNextSong();
+        }
+
+        public void AddUser(string userId)
+        {
+            var userSong = UserSong(userId);
+            if (userSong == null)
+            {
+                lock (UserListLock)
+                {
+                    List.AddLast(new UserSong(userId));
+                }
+                UserChanged?.Invoke(true, userId);
+            }
+            if (!IsPlaying) GoNext();
+            else RefreshNextSong();
+        }
+
+        public void RemoveUser(string userId)
+        {
+            //TODO: May cause deadlock?
+            //TODO: removing current playing user may cause nextUser loopback to first.
+            var userSong = UserSong(userId);
+            if (userSong != null)
+            {
+                lock (UserListLock)
+                {
+                    List.Remove(userSong);
+                }
+                UserChanged?.Invoke(false, userId);
+            }
+            RefreshNextSong();
+        }
+
+        public void SetSong(string userId, ClientSong song)
+        {
+            var userSong = UserSong(userId);
+            if (userSong != null)
+            {
+                userSong.Song = song;
+            }
+            if (!IsPlaying) GoNext();
+            else RefreshNextSong();
+        }
+
+        private LinkedListNode<UserSong> FindNext(LinkedListNode<UserSong> item)
+        {
+            var next = Current.NextOrFirst(List);
+            for (var i = 0; i != List.Count; ++i)
+            {
+                var song = next?.Value?.Song;
+                if (song != null)
+                {
+                    return next;
+                }
+                next = next?.NextOrFirst(List);
+            }
+            return null;
+        }
+
+        public void GoNext()
+        {
+            Current = FindNext(Current);
+        }
+
+        private UserSong UserSong(string userId)
+        {
+            return List.FirstOrDefault(it => it.UserId == userId);
         }
     }
 
     public class Channel
     {
-        private readonly string channelId;
+        public string Id { get; }
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
 
+        private readonly ISet<string> FinishedUsers = new HashSet<string>();
+        private readonly ISet<string> DownvoteUsers = new HashSet<string>();
+        private readonly ChannelUserList List = new ChannelUserList();
 
-        IDictionary<string, ClientSong> SongMap = new Dictionary<string, ClientSong>();
-        ISet<string> FinishedUsers = new HashSet<string>();
-        ISet<string> DownvoteUsers = new HashSet<string>();
-        LinkedList<string> userList = new LinkedList<string>();
+        private DateTime StartTime;
+        private Timer FinishTimeoutTimer;
 
-        LinkedListNode<string> nextUser = null;
-        LinkedListNode<string> currentUser = null;
-        Song NextServerSong = null;
-        ClientSong _NextSong = null;
-        ClientSong CurrentSong = null;
-        private string CurrentSongUser;
-        DateTime StartTime = DateTime.Now;
-        private Timer FinishTimeoutTimer = null;
-
-        public ClientSong NextSong
-        {
-            private set
-            {
-                if (_NextSong == value) return;
-                _NextSong = value;
-                BroadcastNextSongUpdated();
-            }
-            get
-            {
-                return _NextSong;
-            }
-        }
-
-        private string NextSongUser;
-
-        private LinkedListNode<string> CurrentUser
-        {
-            get
-            {
-                return currentUser ?? userList.First;
-            }
-
-            set
-            {
-                if (CurrentUser != value)
-                {
-                    currentUser = value;
-                }
-            }
-        }
-
-        public bool Empty => userList.Count == 0;
-
-        public IEnumerable<string> UserList
-        {
-            get
-            {
-                return userList.Select(i => i).ToList();
-            }
-        }
-
-        public string CurrentUserId => CurrentUser?.Value;
-
-        public double Elapsed => (DateTime.Now - StartTime).TotalSeconds;
-
-        public bool IsIdle => FinishedUsers.IsSupersetOf(userList);
-
-        public string Id => channelId;
+        private double Elapsed => (DateTime.Now - StartTime).TotalSeconds;
+        public bool Empty => List.Empty;
+        private Song NextServerSong;
+        public List<string> UserList => List.UserList;
 
         public Channel(string id, ISocketManager socketManager, IProvider provider)
         {
-            channelId = id;
+            Id = id;
             SocketManager = socketManager;
             Provider = provider;
+            List.CurrentChanged += song =>
+            {
+                StartTime = DateTime.Now;
+                FinishedUsers.Clear();
+                DownvoteUsers.Clear();
+                BroadcastPlayCurrentSong(song);
+            };
+            List.UserChanged += (add, userId) =>
+            {
+                BroadcastUserListUpdated();
+            };
+            List.NextChanged += song =>
+            {
+                BroadcastNextSongUpdated(song);
+            };
         }
 
         public void Join(string userId)
         {
-            if (!userList.Contains(userId))
+            List.AddUser(userId);
+            if (SocketManager.IsConnected(userId))
             {
-                userList.AddLast(userId);
-                UpdateNextSong();
-                if (SocketManager.IsConnected(userId)) BroadcastPlayCurrentSong(userId);
+                EmitChannelInfo(userId);
             }
-            BroadcastUserListUpdated();
         }
 
         public void Leave(string userId)
         {
-            // TODO: remove channel when no people in.
-            var user = userList.Find(userId);
-            if (user == null) return;
-            if (userList.Count == 1)
-            {
-                userList.Clear();
-                nextUser = null;
-                return;
-            }
-            SongMap.Remove(userId);
-            if (user == CurrentUser)
-            {
-                CurrentUser = CurrentUser.NextOrFirst();
-            }
-            userList.Remove(user);
-            BroadcastUserListUpdated();
-            UpdateNextSong();
+            List.RemoveUser(userId);
         }
 
         public void Connect(string userId)
@@ -154,52 +237,17 @@ namespace Wukong.Services
 
         public void UpdateSong(string userId, ClientSong song)
         {
-            if (userList.Contains(userId))
-            {
-                if (song == null)
-                {
-                    SongMap.Remove(userId);
-                }
-                else
-                {
-                    SongMap[userId] = song;
-                }
-                UpdateNextSong();
-            }
-        }
-
-        private void UpdateNextSong()
-        {
-            nextUser = CurrentUser.NextOrFirst();
-            if (nextUser == null)
-            {
-                NextSong = null;
-                return;
-            }
-            for (int i = 0; i < userList.Count; i++)
-            {
-                if (SongMap.ContainsKey(nextUser.Value) && SongMap[nextUser.Value] != null)
-                {
-                    NextSong = SongMap[nextUser.Value];
-                    NextSongUser = nextUser.Value;
-                    return;
-                }
-                else
-                {
-                    nextUser = nextUser.NextOrFirst();
-                }
-            }
-            NextSong = null;
+            List.SetSong(userId, song);
         }
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (CurrentSong == null)
+            if (!List.IsPlaying)
             {
                 ShouldForwardNow();
                 return true;
             }
-            if (song == null || song.SiteId != CurrentSong.SiteId || song.SongId != CurrentSong.SongId)
+            if (song != List.CurrentPlaying?.Song)
                 return false;
             if (force)
                 DownvoteUsers.Add(userId);
@@ -211,14 +259,15 @@ namespace Wukong.Services
 
         public bool HasUser(string userId)
         {
-            return userList.Contains(userId);
+            return List.UserList.Contains(userId);
         }
 
         private void CheckShouldForwardCurrentSong()
         {
+            var userList = List.UserList;
             var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
-            var undeterminedCount = UserList.Except(DownvoteUsers).Except(FinishedUsers).Count();
-            var connectedUserCount = UserList.Select(it => SocketManager.IsConnected(it)).Count();
+            var undeterminedCount = userList.Except(DownvoteUsers).Except(FinishedUsers).Count();
+            var connectedUserCount = userList.Select(it => SocketManager.IsConnected(it)).Count();
             if (downVoteUserCount >= QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
             {
                 ShouldForwardNow();
@@ -232,95 +281,76 @@ namespace Wukong.Services
 
         private int QueryForceForwardCount(int total)
         {
-            return Convert.ToInt32(Math.Ceiling(((double)total) / 2));
-        }
-
-        private void StartPlayingCurrent()
-        {
-            StartTime = DateTime.Now;
-            FinishedUsers.Clear();
-            DownvoteUsers.Clear();
-            BroadcastPlayCurrentSong();
+            return Convert.ToInt32(Math.Ceiling((double)total / 2));
         }
 
         private void ShouldForwardNow(object state = null)
         {
             FinishTimeoutTimer?.Dispose();
             FinishTimeoutTimer = null;
-            CurrentUser = nextUser;
-            CurrentSong = NextSong;
-            CurrentSongUser = NextSongUser;
-            StartPlayingCurrent();
-            UpdateNextSong();
+            List.GoNext();
         }
 
         private void BroadcastUserListUpdated(string userId = null)
         {
-            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
+            var users = List.UserList;
+            SocketManager.SendMessage(userId != null ? new[] { userId } : users.ToArray(),
                 new UserListUpdated
                 {
-                    ChannelId = channelId,
-                    Users = UserList.Select(it => Storage.Instance.GetUser(it)).ToList()
+                    ChannelId = Id,
+                    Users = users.Select(it => Storage.Instance.GetUser(it)).ToList()
                 });
         }
 
-        private async void BroadcastNextSongUpdated(string userId = null)
+        private async void BroadcastNextSongUpdated(ClientSong next, string userId = null)
         {
-            NextServerSong = await Provider.GetSong(NextSong, true);
-            if (CurrentSong == null)
+            if (next == null) return;
+            if (NextServerSong == null || NextServerSong.SongId != next.SongId || NextServerSong.SiteId != next.SiteId)
             {
-                if (NextSong != null)
+                NextServerSong = await Provider.GetSong(next, true);
+            }
+            if (NextServerSong == null) return;
+            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList.ToArray(),
+                new NextSongUpdated
                 {
-                    CurrentSong = NextSong;
-                    CurrentSongUser = NextSongUser;
-                    StartPlayingCurrent();
-                }
-            }
-            else
-            {
-                SocketManager.SendMessage(userId != null ? new[] { userId } : UserList,
-                    new NextSongUpdated
-                    {
-                        ChannelId = channelId,
-                        Song = NextServerSong
-                    });
-            }
+                    ChannelId = Id,
+                    Song = NextServerSong
+                });
         }
 
-        private async void BroadcastPlayCurrentSong(string userId = null)
+        private async void BroadcastPlayCurrentSong(UserSong current, string userId = null)
         {
-            Song song;
-            if (NextServerSong != null &&
-                NextServerSong.SiteId == CurrentSong.SiteId &&
-                NextServerSong.SongId == CurrentSong.SongId)
+            Song song = null;
+            if (current?.Song != null)
             {
-                song = NextServerSong;
+                if (NextServerSong != null &&
+                NextServerSong.SiteId == current.Song.SiteId &&
+                NextServerSong.SongId == current.Song.SongId)
+                {
+                    song = NextServerSong;
+                }
+                else
+                {
+                    song = await Provider.GetSong(current.Song, true);
+                }
             }
-            else
-            {
-                song = await Provider.GetSong(CurrentSong, true);
-            }
-            if (null == song)
-            {
-                return;
-            }
-            
-            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList
+
+            SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
                 , new Play
                 {
-                    ChannelId = channelId,
+                    ChannelId = Id,
                     Downvote = DownvoteUsers.Contains(userId),
                     Song = song,
                     Elapsed = Elapsed,
-                    User = CurrentSongUser
+                    User = current?.UserId
                 });
         }
 
         private void EmitChannelInfo(string userId)
         {
             BroadcastUserListUpdated(userId);
-            BroadcastNextSongUpdated(userId);
-            BroadcastPlayCurrentSong(userId);
+            BroadcastPlayCurrentSong(List.CurrentPlaying, userId);
+            BroadcastNextSongUpdated(List.NextSong, userId);
         }
     }
 }
