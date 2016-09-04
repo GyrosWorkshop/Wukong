@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Wukong.Models;
 using Microsoft.Extensions.Logging;
+using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {
@@ -140,7 +141,7 @@ namespace Wukong.Services
         private void StartDisconnecTimer(string userId)
         {
             Disconnect(userId);
-            disconnectTimer[userId] = new Timer(Timeout, userId, 15 * 1000, 0);
+            disconnectTimer[userId] = new Timer(Timeout, userId, 15 * 1000, Infinite);
         }
 
         private void Timeout(object userId)
@@ -166,6 +167,7 @@ namespace Wukong.Services
             {
                 var timer = disconnectTimer[userId];
                 disconnectTimer.Remove(userId);
+                timer.Change(Infinite, Infinite);
                 timer.Dispose();
             }
         }

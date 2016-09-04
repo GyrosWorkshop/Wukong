@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wukong.Helpers;
 using Wukong.Models;
+using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {
@@ -83,7 +84,6 @@ namespace Wukong.Services
         public bool IsPlaying => CurrentPlaying?.Song != null;
         public bool Empty => List.Count == 0;
         public List<string> UserList => List.Select(it => it.UserId).ToList();
-        private UserSong Next => (Current?.Next ?? List.First)?.Value;
         public ClientSong NextSong { get; private set; }
 
         private void RefreshNextSong()
@@ -275,7 +275,7 @@ namespace Wukong.Services
             else if (undeterminedCount <= connectedUserCount * 0.5)
             {
                 if (FinishTimeoutTimer != null) return;
-                FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Timeout.Infinite);
+                FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Infinite);
             }
         }
 
@@ -286,6 +286,7 @@ namespace Wukong.Services
 
         private void ShouldForwardNow(object state = null)
         {
+            FinishTimeoutTimer?.Change(Infinite, Infinite);
             FinishTimeoutTimer?.Dispose();
             FinishTimeoutTimer = null;
             List.GoNext();
