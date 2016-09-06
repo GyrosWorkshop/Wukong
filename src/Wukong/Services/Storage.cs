@@ -11,8 +11,8 @@ namespace Wukong.Services
         static readonly Lazy<Storage> instance =
             new Lazy<Storage>(() => new Storage());
 
-        IDictionary<string, User> userMap = new Dictionary<string, User>();
-        IDictionary<string, Channel> channelMap = new Dictionary<string, Channel>();
+        volatile IDictionary<string, User> userMap = new Dictionary<string, User>();
+        volatile IDictionary<string, Channel> channelMap = new Dictionary<string, Channel>();
 
         public static Storage Instance
         {
