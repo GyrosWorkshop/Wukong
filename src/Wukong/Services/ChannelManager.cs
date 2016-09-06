@@ -7,7 +7,7 @@ namespace Wukong.Services
 {
     public interface IChannelManager
     {
-        void Join(string channelId, string userId);
+        void JoinAndLeavePreviousChannel(string channelId, string userId);
         void Leave(string userId);
         ISocketManager SocketManager { set; }
     }
@@ -23,7 +23,7 @@ namespace Wukong.Services
             this.provider = provider;
             Logger = loggerFactory.CreateLogger<ChannelManager>();
         }
-        public void Join(string channelId, string userId)
+        public void JoinAndLeavePreviousChannel(string channelId, string userId)
         {
             if (channelId == Storage.Instance.GetChannelByUser(userId)?.Id) return;
             Leave(userId);
