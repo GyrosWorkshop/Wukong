@@ -45,9 +45,9 @@ namespace Wukong.Services
             channelMap.TryRemove(channelId, out ignore);
         }
 
-        public List<Channel> GetAllChannelsWithUserId(string userId)
+        public Channel GetChannelByUser(string userId)
         {
-            return channelMap.Values.Where(x => x.HasUser(userId)).ToList();
+            return channelMap.Values.FirstOrDefault(it => it.HasUser(userId));
         }
     }
 }

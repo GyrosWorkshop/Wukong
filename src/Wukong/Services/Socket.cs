@@ -57,7 +57,7 @@ namespace Wukong.Services
         public SocketManager(ILoggerFactory loggerFactory, IChannelManager channelManager)
         {
             ChannelManager = channelManager;
-            ChannelManager.SocketManager = this; 
+            ChannelManager.SocketManager = this;
             // TODO: this is NOT a good design.
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
@@ -76,7 +76,8 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Connect(userId));
+
+            Storage.Instance.GetChannelByUser(userId)?.Connect(userId);
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -91,7 +92,7 @@ namespace Wukong.Services
             var type = WebSocketMessageType.Text;
             var data = Encoding.UTF8.GetBytes(message);
             var buffer = new ArraySegment<Byte>(data);
-            try 
+            try
             {
                 await Task.WhenAll(verifiedSocket.Where(i => (i.Value.State == WebSocketState.Open) && userIds.Contains(i.Key))
                                                 .Select(i => i.Value.SendAsync(buffer, type, true, token)));
@@ -130,7 +131,7 @@ namespace Wukong.Services
             {
                 Logger.LogDebug("user: " + userId + " socket disposed.");
                 WebSocket ws;
-                if (verifiedSocket.TryRemove(userId, out ws)) 
+                if (verifiedSocket.TryRemove(userId, out ws))
                 {
                     socket?.Dispose();
                 }
@@ -149,16 +150,12 @@ namespace Wukong.Services
             var id = (string)userId;
             Logger.LogInformation($"user {id} timeout.");
             ResetTimer(id);
-            // TODO: do not query channels by user.
-            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it => 
-            {
-                ChannelManager.Leave(it.Id, id);
-            });
+            ChannelManager.Leave(id);
         }
 
         private void Disconnect(string userId)
         {
-            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Disconnect(userId));
+            Storage.Instance.GetChannelByUser(userId)?.Disconnect(userId);
         }
 
         private void ResetTimer(string userId)

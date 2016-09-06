@@ -7,8 +7,8 @@ namespace Wukong.Services
 {
     public interface IChannelManager
     {
-        void Join(string channelId, string userId);
-        void Leave(string channelId, string userId);
+        void JoinAndLeavePreviousChannel(string channelId, string userId);
+        void Leave(string userId);
         ISocketManager SocketManager { set; }
     }
     public class ChannelManager : IChannelManager
@@ -23,27 +23,29 @@ namespace Wukong.Services
             this.provider = provider;
             Logger = loggerFactory.CreateLogger<ChannelManager>();
         }
-        public void Join(string channelId, string userId)
+        public void JoinAndLeavePreviousChannel(string channelId, string userId)
         {
+            if (channelId == Storage.Instance.GetChannelByUser(userId)?.Id) return;
+            Leave(userId);
             var channel = Storage.Instance.GetOrCreateChannel(channelId, SocketManager, provider);
             channel.Join(userId);
-       }
+        }
 
-       public void BroadCastUserList(Channel channel, string userId = null)
-       {
-           var userList = userId != null ? new List<string> { userId } : channel.UserList;
-       }
-
-        public void Leave(string channelId, string userId)
+        public void BroadCastUserList(Channel channel, string userId = null)
         {
-            var channel = Storage.Instance.GetChannel(channelId);
+            var userList = userId != null ? new List<string> { userId } : channel.UserList;
+        }
+
+        public void Leave(string userId)
+        {
+            var channel = Storage.Instance.GetChannelByUser(userId);
             if (channel != null)
             {
                 channel.Leave(userId);
                 if (channel.Empty)
                 {
                     Logger.LogInformation($"Channel {channel.Id} removed.");
-                    Storage.Instance.RemoveChannel(channelId);
+                    Storage.Instance.RemoveChannel(channel.Id);
                 }
             }
         }
