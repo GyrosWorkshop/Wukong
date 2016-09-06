@@ -3,11 +3,6 @@ using System.Collections.Generic;
 
 namespace Wukong.Models
 {
-    public class Join
-    {
-        public string PreviousChannelId;
-    }
-
     public class TokenResponse
     {
         public string UserId;
