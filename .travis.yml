@@ -5,3 +5,5 @@ before_install:
     - docker build -t wukong .
 script:
     - ls
+notifications:
+    email: false
