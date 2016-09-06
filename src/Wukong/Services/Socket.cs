@@ -53,12 +53,15 @@ namespace Wukong.Services
     {
         private readonly ILogger Logger;
         private readonly IChannelManager ChannelManager;
+        private readonly IStorage Storage;
 
-        public SocketManager(ILoggerFactory loggerFactory, IChannelManager channelManager)
+        public SocketManager(ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage)
         {
             ChannelManager = channelManager;
+            Storage = storage;
             ChannelManager.SocketManager = this;
-            // TODO: this is NOT a good design.
+            Storage.SocketManager = this;
+            // TODO: this is NOT a good design. x2
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
         }
@@ -77,7 +80,7 @@ namespace Wukong.Services
                     return webSocket;
                 });
 
-            Storage.Instance.GetChannelByUser(userId)?.Connect(userId);
+            Storage.GetChannelByUser(userId)?.Connect(userId);
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -155,7 +158,7 @@ namespace Wukong.Services
 
         private void Disconnect(string userId)
         {
-            Storage.Instance.GetChannelByUser(userId)?.Disconnect(userId);
+            Storage.GetChannelByUser(userId)?.Disconnect(userId);
         }
 
         private void ResetTimer(string userId)
