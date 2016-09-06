@@ -78,7 +78,7 @@ namespace Wukong.Services
             Song result = null;
             int retryCount = 3, currentRetry = 0;
             // tripple retries max
-            for (; ;)
+            for (;;)
             {
                 try
                 {
@@ -99,7 +99,7 @@ namespace Wukong.Services
                     }
                 }
             }
-            
+
             timer.Stop();
             Telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
             return result;
@@ -118,7 +118,8 @@ namespace Wukong.Services
                     result = await response.Content.ReadAsAsync<object>();
                 }
             }
-            finally {
+            finally
+            {
                 timer.Stop();
                 Telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
             }
