@@ -1,4 +1,6 @@
 sudo: required
+dist: trusty
+language: generic
 services:
     - docker
 before_install:
@@ -7,3 +9,4 @@ script:
     - ls
 notifications:
     email: false
+    
