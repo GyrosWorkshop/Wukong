@@ -91,7 +91,7 @@ namespace Wukong
             {
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
             });
-            app.UseCors(builder => builder.WithOrigins(new string[] { "http://127.0.0.1:8080", "http://localhost:8080" }).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+            app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions());
             app.UseGoogleAuthentication(Options.OAuthOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));

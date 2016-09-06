@@ -48,9 +48,9 @@ namespace Wukong.Services
             channelMap.Remove(channelId);
         }
 
-        public List<Channel> GetAllChannelsWithUserId(string userId)
+        public Channel GetChannelByUser(string userId)
         {
-            return channelMap.Values.Where(x => x.HasUser(userId)).ToList();
+            return channelMap.Values.FirstOrDefault(it => it.HasUser(userId));
         }
 
         public Channel CreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
