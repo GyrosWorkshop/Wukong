@@ -27,8 +27,7 @@ namespace Wukong.Services
         {
             if (channelId == Storage.Instance.GetChannelByUser(userId)?.Id) return;
             Leave(userId);
-            var channel = Storage.Instance.GetChannel(channelId) ??
-                Storage.Instance.CreateChannel(channelId, SocketManager, provider);
+            var channel = Storage.Instance.GetOrCreateChannel(channelId, SocketManager, provider);
             channel.Join(userId);
         }
 

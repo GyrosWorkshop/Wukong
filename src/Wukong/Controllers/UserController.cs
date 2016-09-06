@@ -31,7 +31,7 @@ namespace Wukong.Controllers
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()
         {
-            var user = Storage.Instance.GetUser(UserId);
+            var user = Storage.Instance.GetOrCreateUser(UserId);
             // TODO(Leeleo3x): In the future we should make request to get more user info.
             user.UpdateFromClaims(HttpContext.User);
             return new ObjectResult(user);
