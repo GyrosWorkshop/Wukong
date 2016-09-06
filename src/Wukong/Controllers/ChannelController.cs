@@ -16,11 +16,13 @@ namespace Wukong.Controllers
     {
         private readonly ILogger Logger;
         private readonly IChannelManager ChannelManager;
+        private readonly IStorage Storage;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage)
         {
             Logger = loggerFactory.CreateLogger("ChannelController");
             ChannelManager = channelManager;
+            Storage = storage;
         }
 
         string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -36,7 +38,7 @@ namespace Wukong.Controllers
         public ActionResult Finished(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            var success = Storage.Instance.GetChannel(channelId)?.ReportFinish(UserId, song);
+            var success = Storage.GetChannel(channelId)?.ReportFinish(UserId, song);
             if (success == true) return NoContent();
             else return BadRequest();
         }
@@ -46,7 +48,7 @@ namespace Wukong.Controllers
         public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            var channel = Storage.Instance.GetChannel(channelId);
+            var channel = Storage.GetChannel(channelId);
             channel?.UpdateSong(UserId, song);
         }
 
@@ -54,7 +56,7 @@ namespace Wukong.Controllers
         public ActionResult DownVote(string channelId, [FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            var channel = Storage.Instance.GetChannel(channelId);
+            var channel = Storage.GetChannel(channelId);
             var success = channel?.ReportFinish(UserId, song, true);
             if (success == true) return NoContent();
             else return BadRequest();

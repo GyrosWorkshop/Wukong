@@ -13,21 +13,21 @@ namespace Wukong.Services
     }
     public class ChannelManager : IChannelManager
     {
-        private IProvider provider;
         private readonly ILogger Logger;
+        private readonly IStorage Storage;
 
         public ISocketManager SocketManager { get; set; }
 
-        public ChannelManager(IProvider provider, ILoggerFactory loggerFactory)
+        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage)
         {
-            this.provider = provider;
             Logger = loggerFactory.CreateLogger<ChannelManager>();
+            Storage = storage;
         }
         public void JoinAndLeavePreviousChannel(string channelId, string userId)
         {
-            if (channelId == Storage.Instance.GetChannelByUser(userId)?.Id) return;
+            if (channelId == Storage.GetChannelByUser(userId)?.Id) return;
             Leave(userId);
-            var channel = Storage.Instance.GetOrCreateChannel(channelId, SocketManager, provider);
+            var channel = Storage.GetOrCreateChannel(channelId);
             channel.Join(userId);
         }
 
@@ -38,14 +38,14 @@ namespace Wukong.Services
 
         public void Leave(string userId)
         {
-            var channel = Storage.Instance.GetChannelByUser(userId);
+            var channel = Storage.GetChannelByUser(userId);
             if (channel != null)
             {
                 channel.Leave(userId);
                 if (channel.Empty)
                 {
                     Logger.LogInformation($"Channel {channel.Id} removed.");
-                    Storage.Instance.RemoveChannel(channel.Id);
+                    Storage.RemoveChannel(channel.Id);
                 }
             }
         }

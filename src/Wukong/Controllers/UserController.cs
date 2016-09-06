@@ -18,11 +18,13 @@ namespace Wukong.Controllers
     public class UserController : Controller
     {
         private readonly IProvider Provider;
-        private IUserSongListRepository UserSongListRepository;
+        private readonly IUserSongListRepository UserSongListRepository;
+        private readonly IStorage Storage;
 
-        public UserController(IProvider provider, IUserSongListRepository userSongListRepository)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IStorage storage)
         {
             UserSongListRepository = userSongListRepository;
+            Storage = storage;
             Provider = provider;
         }
 
@@ -31,7 +33,7 @@ namespace Wukong.Controllers
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()
         {
-            var user = Storage.Instance.GetOrCreateUser(UserId);
+            var user = Storage.GetOrCreateUser(UserId);
             // TODO(Leeleo3x): In the future we should make request to get more user info.
             user.UpdateFromClaims(HttpContext.User);
             return new ObjectResult(user);
