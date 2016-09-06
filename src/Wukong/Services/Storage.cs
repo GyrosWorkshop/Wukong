@@ -12,26 +12,22 @@ namespace Wukong.Services
         static readonly Lazy<Storage> instance =
             new Lazy<Storage>(() => new Storage());
 
-        IDictionary<string, User> userMap = new ConcurrentDictionary<string, User>();
-        IDictionary<string, Channel> channelMap = new ConcurrentDictionary<string, Channel>();
+        ConcurrentDictionary<string, User> userMap = new ConcurrentDictionary<string, User>();
+        ConcurrentDictionary<string, Channel> channelMap = new ConcurrentDictionary<string, Channel>();
 
-        public static Storage Instance
+        public static Storage Instance => instance.Value;
+
+        private Storage() { }
+
+        public User GetOrCreateUser(string userId)
         {
-            get
-            {
-                return instance.Value;
-            }
+            return userMap.GetOrAdd(userId, s => new User(s));
         }
 
-        Storage() { }
-
-        public User GetUser(string userId)
+        public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
         {
-            if (!userMap.ContainsKey(userId))
-            {
-                userMap.Add(userId, new User(userId));
-            }
-            return userMap[userId];
+            if (channelId == null) return null;
+            return channelMap.GetOrAdd(channelId, s => new Channel(s, socketManager, provider));
         }
 
         public Channel GetChannel(string channelId)
@@ -45,19 +41,13 @@ namespace Wukong.Services
 
         public void RemoveChannel(string channelId)
         {
-            channelMap.Remove(channelId);
+            Channel ignore;
+            channelMap.TryRemove(channelId, out ignore);
         }
 
         public List<Channel> GetAllChannelsWithUserId(string userId)
         {
             return channelMap.Values.Where(x => x.HasUser(userId)).ToList();
         }
-
-        public Channel CreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
-        {
-            channelMap[channelId] = new Channel(channelId, socketManager, provider);
-            return channelMap[channelId];
-        }
     }
-
 }

@@ -299,7 +299,7 @@ namespace Wukong.Services
                 new UserListUpdated
                 {
                     ChannelId = Id,
-                    Users = users.Select(it => Storage.Instance.GetUser(it)).ToList()
+                    Users = users.Select(it => Storage.Instance.GetOrCreateUser(it)).ToList()
                 });
         }
 
