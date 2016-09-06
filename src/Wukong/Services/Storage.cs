@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -11,8 +12,8 @@ namespace Wukong.Services
         static readonly Lazy<Storage> instance =
             new Lazy<Storage>(() => new Storage());
 
-        IDictionary<string, User> userMap = new Dictionary<string, User>();
-        IDictionary<string, Channel> channelMap = new Dictionary<string, Channel>();
+        IDictionary<string, User> userMap = new ConcurrentDictionary<string, User>();
+        IDictionary<string, Channel> channelMap = new ConcurrentDictionary<string, Channel>();
 
         public static Storage Instance
         {
