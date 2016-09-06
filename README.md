@@ -11,10 +11,6 @@ A Wukong backend written in C#.
 
 ### POST `/join/:channelId`
 
-#### Parameter
-
-- previousChannelId
-
 ### POST `/updateNextSong/:channelId`
 
 #### Parameter

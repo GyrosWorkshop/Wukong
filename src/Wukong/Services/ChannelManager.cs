@@ -25,6 +25,7 @@ namespace Wukong.Services
         }
         public void Join(string channelId, string userId)
         {
+            Storage.Instance.GetChannelByUser(userId)?.Leave(userId);
             var channel = Storage.Instance.GetChannel(channelId) ??
                 Storage.Instance.CreateChannel(channelId, SocketManager, provider);
             channel.Join(userId);
