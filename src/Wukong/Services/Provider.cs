@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Wukong.Models;
 using Wukong.Options;
 
@@ -26,8 +27,9 @@ namespace Wukong.Services
         private readonly HttpClient client;
         private readonly JsonMediaTypeFormatter formatter;
         private readonly TelemetryClient Telemetry;
+        private readonly ILogger Logger;
 
-        public Provider(IOptions<ProviderOption> option)
+        public Provider(IOptions<ProviderOption> option, ILoggerFactory loggerFactory)
         {
             client = new HttpClient();
             client.BaseAddress = new Uri(option.Value.Url);
@@ -38,6 +40,7 @@ namespace Wukong.Services
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
             Telemetry = new TelemetryClient();
+            Logger = loggerFactory.CreateLogger<Provider>();
         }
 
         public async Task<List<SongInfo>> Search(SearchSongRequest query)
@@ -78,7 +81,7 @@ namespace Wukong.Services
             Song result = null;
             int retryCount = 3, currentRetry = 0;
             // tripple retries max
-            for (; ;)
+            while (result == null && currentRetry <= retryCount)
             {
                 try
                 {
@@ -86,17 +89,11 @@ namespace Wukong.Services
                     if (response.IsSuccessStatusCode)
                     {
                         result = await response.Content.ReadAsAsync<Song>();
-                        if (result == null) throw new Exception("song null");
-                        break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    currentRetry++;
-                    if (currentRetry > retryCount)
-                    {
-                        break;
-                    }
+                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry++ + " of " + retryCount + ")");
                 }
             }
             
