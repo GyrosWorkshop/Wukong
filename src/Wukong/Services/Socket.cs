@@ -76,7 +76,8 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Connect(userId));
+
+            Storage.Instance.GetChannelByUser(userId)?.Connect(userId);
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -149,16 +150,12 @@ namespace Wukong.Services
             var id = (string)userId;
             Logger.LogInformation($"user {id} timeout.");
             ResetTimer(id);
-            // TODO: do not query channels by user.
-            Storage.Instance.GetAllChannelsWithUserId(id).ForEach(it =>
-            {
-                ChannelManager.Leave(it.Id, id);
-            });
+            ChannelManager.Leave(id);
         }
 
         private void Disconnect(string userId)
         {
-            Storage.Instance.GetAllChannelsWithUserId(userId).ForEach(it => it.Disconnect(userId));
+            Storage.Instance.GetChannelByUser(userId)?.Disconnect(userId);
         }
 
         private void ResetTimer(string userId)

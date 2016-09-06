@@ -8,7 +8,7 @@ namespace Wukong.Services
     public interface IChannelManager
     {
         void Join(string channelId, string userId);
-        void Leave(string channelId, string userId);
+        void Leave(string userId);
         ISocketManager SocketManager { set; }
     }
     public class ChannelManager : IChannelManager
@@ -25,7 +25,8 @@ namespace Wukong.Services
         }
         public void Join(string channelId, string userId)
         {
-            Storage.Instance.GetChannelByUser(userId)?.Leave(userId);
+            if (channelId == Storage.Instance.GetChannelByUser(userId)?.Id) return;
+            Leave(userId);
             var channel = Storage.Instance.GetChannel(channelId) ??
                 Storage.Instance.CreateChannel(channelId, SocketManager, provider);
             channel.Join(userId);
@@ -36,16 +37,16 @@ namespace Wukong.Services
             var userList = userId != null ? new List<string> { userId } : channel.UserList;
         }
 
-        public void Leave(string channelId, string userId)
+        public void Leave(string userId)
         {
-            var channel = Storage.Instance.GetChannel(channelId);
+            var channel = Storage.Instance.GetChannelByUser(userId);
             if (channel != null)
             {
                 channel.Leave(userId);
                 if (channel.Empty)
                 {
                     Logger.LogInformation($"Channel {channel.Id} removed.");
-                    Storage.Instance.RemoveChannel(channelId);
+                    Storage.Instance.RemoveChannel(channel.Id);
                 }
             }
         }
