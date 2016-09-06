@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Builder;
 
 namespace Wukong
-{,
+{
     public class Program
     {
         public static void Main(string[] args)
