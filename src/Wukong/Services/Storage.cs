@@ -10,35 +10,25 @@ namespace Wukong.Services
     public interface IStorage
     {
         User GetOrCreateUser(string userId);
-        Channel GetOrCreateChannel(string channelId);
+        Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider);
         Channel GetChannel(string channelId);
         void RemoveChannel(string channelId);
         Channel GetChannelByUser(string userId);
-
-        ISocketManager SocketManager { set; }
     }
 
     public sealed class Storage : IStorage
     {
-        private readonly IProvider Provider;
-        public ISocketManager SocketManager { get; set; }
-
         private readonly ConcurrentDictionary<string, User> UserMap = new ConcurrentDictionary<string, User>();
         private readonly ConcurrentDictionary<string, Channel> ChannelMap = new ConcurrentDictionary<string, Channel>();
-
-        public Storage(IProvider provider)
-        {
-            Provider = provider;
-        }
 
         public User GetOrCreateUser(string userId)
         {
             return UserMap.GetOrAdd(userId, s => new User(s));
         }
 
-        public Channel GetOrCreateChannel(string channelId)
+        public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
         {
-            return channelId == null ? null : ChannelMap.GetOrAdd(channelId, s => new Channel(s, SocketManager, Provider, this));
+            return channelId == null ? null : ChannelMap.GetOrAdd(channelId, s => new Channel(s, socketManager, provider, this));
         }
 
         public Channel GetChannel(string channelId)

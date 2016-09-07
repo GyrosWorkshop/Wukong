@@ -9,25 +9,29 @@ namespace Wukong.Services
     {
         void JoinAndLeavePreviousChannel(string channelId, string userId);
         void Leave(string userId);
-        ISocketManager SocketManager { set; }
     }
     public class ChannelManager : IChannelManager
     {
         private readonly ILogger Logger;
         private readonly IStorage Storage;
+        private readonly ISocketManager SocketManager;
+        private readonly IProvider Provider;
 
-        public ISocketManager SocketManager { get; set; }
-
-        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage)
+        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager, IProvider provider)
         {
             Logger = loggerFactory.CreateLogger<ChannelManager>();
             Storage = storage;
+            Provider = provider;
+            SocketManager = socketManager;
+            SocketManager.ConnectedEvent += UserConnected;
+            SocketManager.DisconnectedEvent += UserDisconnected;
         }
+
         public void JoinAndLeavePreviousChannel(string channelId, string userId)
         {
             if (channelId == Storage.GetChannelByUser(userId)?.Id) return;
             Leave(userId);
-            var channel = Storage.GetOrCreateChannel(channelId);
+            var channel = Storage.GetOrCreateChannel(channelId, SocketManager, Provider);
             channel.Join(userId);
         }
 
@@ -39,16 +43,20 @@ namespace Wukong.Services
         public void Leave(string userId)
         {
             var channel = Storage.GetChannelByUser(userId);
-            if (channel != null)
-            {
-                channel.Leave(userId);
-                if (channel.Empty)
-                {
-                    Logger.LogInformation($"Channel {channel.Id} removed.");
-                    Storage.RemoveChannel(channel.Id);
-                }
-            }
+            channel?.Leave(userId);
+            if (channel == null || !channel.Empty) return;
+            Logger.LogInformation($"Channel {channel.Id} removed.");
+            Storage.RemoveChannel(channel.Id);
         }
 
+        private void UserConnected(string userId)
+        {
+            Storage.GetChannelByUser(userId)?.Connect(userId);
+        }
+
+        private void UserDisconnected(string userId)
+        {
+            Leave(userId);
+        }
     }
 }
