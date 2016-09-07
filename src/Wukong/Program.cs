@@ -9,7 +9,7 @@ namespace Wukong
         public static void Main(string[] args)
         {
             var host = new WebHostBuilder()
-                .useUrls("http://0.0.0.0:5000")
+                .UseUrls("http://0.0.0.0:5000")
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
