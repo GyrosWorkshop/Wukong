@@ -1,0 +1,12 @@
+sudo: required
+dist: trusty
+language: generic
+services:
+    - docker
+before_install:
+    - docker build -t wukong .
+script:
+    - ls
+notifications:
+    email: false
+    
