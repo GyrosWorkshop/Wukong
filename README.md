@@ -1,6 +1,8 @@
 # Wukong
 A Wukong backend written in C#.
 
+[![Build Status](https://travis-ci.org/GyrosWorkshop/Wukong.svg?branch=master)](https://travis-ci.org/GyrosWorkshop/Wukong)
+
 # Authentication
 
 - Google OAuth `/oauth/google`
