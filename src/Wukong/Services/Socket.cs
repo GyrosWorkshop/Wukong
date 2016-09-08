@@ -16,8 +16,11 @@ using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {
+    public delegate void UserIdDelegate(string userId);
     public interface ISocketManager
     {
+        event UserIdDelegate ConnectedEvent;
+        event UserIdDelegate DisconnectedEvent;
         void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj);
         bool IsConnected(string userId);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
@@ -52,22 +55,17 @@ namespace Wukong.Services
     public class SocketManager : ISocketManager
     {
         private readonly ILogger Logger;
-        private readonly IChannelManager ChannelManager;
-        private readonly IStorage Storage;
+        public event UserIdDelegate ConnectedEvent;
+        public event UserIdDelegate DisconnectedEvent;
 
-        public SocketManager(ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage)
+        public SocketManager(ILoggerFactory loggerFactory)
         {
-            ChannelManager = channelManager;
-            Storage = storage;
-            ChannelManager.SocketManager = this;
-            Storage.SocketManager = this;
-            // TODO: this is NOT a good design. x2
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
         }
 
-        private Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
-        private ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
+        private readonly Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
+        private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId)
         {
@@ -79,8 +77,7 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-
-            Storage.GetChannelByUser(userId)?.Connect(userId);
+            ConnectedEvent?.Invoke(userId);
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -144,7 +141,6 @@ namespace Wukong.Services
 
         private void StartDisconnecTimer(string userId)
         {
-            Disconnect(userId);
             disconnectTimer[userId] = new Timer(Timeout, userId, 15 * 1000, Infinite);
         }
 
@@ -153,13 +149,9 @@ namespace Wukong.Services
             var id = (string)userId;
             Logger.LogInformation($"user {id} timeout.");
             ResetTimer(id);
-            ChannelManager.Leave(id);
+            DisconnectedEvent?.Invoke(id);
         }
 
-        private void Disconnect(string userId)
-        {
-            Storage.GetChannelByUser(userId)?.Disconnect(userId);
-        }
 
         private void ResetTimer(string userId)
         {
