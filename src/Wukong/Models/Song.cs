@@ -62,6 +62,7 @@ namespace Wukong.Models
     public class Song : SongInfo
     {
         public string File;
+        public string FileViaCdn;
         public double Length;
         public int Bitrate;
     }
