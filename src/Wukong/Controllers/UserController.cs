@@ -43,7 +43,7 @@ namespace Wukong.Controllers
         public IActionResult SaveSettings([FromBody] Settings settings)
         {
             Storage.SaveSettings(UserId, settings);
-            return new ObjectResult(Storage.GetSettings(UserId));
+            return NoContent();
         }
 
         [HttpPost("songList/{id}")]

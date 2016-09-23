@@ -7,6 +7,6 @@ namespace Wukong.Models
 {
     public class Settings
     {
-        public Boolean UseCdn = false;
+        public bool UseCdn = false;
     }
 }
