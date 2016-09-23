@@ -19,11 +19,17 @@ namespace Wukong.Services
     public sealed class Storage : IStorage
     {
         private readonly ConcurrentDictionary<string, User> UserMap = new ConcurrentDictionary<string, User>();
+        private readonly ConcurrentDictionary<string, Settings> UserSettingsMap = new ConcurrentDictionary<string, Settings>();
         private readonly ConcurrentDictionary<string, Channel> ChannelMap = new ConcurrentDictionary<string, Channel>();
 
         public User GetOrCreateUser(string userId)
         {
             return UserMap.GetOrAdd(userId, s => new User(s));
+        }
+
+        public Settings GetSettings(string userId)
+        {
+            return UserSettingsMap.GetOrAdd(userId, s => new Settings());
         }
 
         public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
