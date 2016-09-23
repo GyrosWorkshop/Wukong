@@ -39,6 +39,13 @@ namespace Wukong.Controllers
             return new ObjectResult(user);
         }
 
+        [HttpPost("settings")]
+        public IActionResult SaveSettings([FromBody] Settings settings)
+        {
+            Storage.SaveSettings(UserId, settings);
+            return new ObjectResult(Storage.GetSettings(UserId));
+        }
+
         [HttpPost("songList/{id}")]
         public async Task<IActionResult> SongListAsyc(long id, [FromBody] ClientSongList info)
         {

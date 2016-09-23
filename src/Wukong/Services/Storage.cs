@@ -10,6 +10,8 @@ namespace Wukong.Services
     public interface IStorage
     {
         User GetOrCreateUser(string userId);
+        Settings GetSettings(string userId);
+        void SaveSettings(string userId, Settings settings);
         Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider);
         Channel GetChannel(string channelId);
         void RemoveChannel(string channelId);
@@ -30,6 +32,11 @@ namespace Wukong.Services
         public Settings GetSettings(string userId)
         {
             return UserSettingsMap.GetOrAdd(userId, s => new Settings());
+        }
+
+        public void SaveSettings(string userId, Settings settings)
+        {
+            UserSettingsMap.AddOrUpdate(userId, settings, (k, v) => settings);
         }
 
         public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider)
