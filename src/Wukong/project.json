@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": {
-    "Google.Protobuf": "3.0.0",
     "Microsoft.ApplicationInsights.AspNetCore": "1.0.0",
     "Microsoft.AspNet.WebApi.Client": "5.2.3",
     "Microsoft.AspNetCore.Authentication": "1.0.0",
@@ -32,7 +31,9 @@
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
     "Nito.AsyncEx": "3.0.1",
     "System.Runtime.Serialization.Primitives": "4.1.1",
-    "System.Runtime.Serialization.Xml": "4.1.1"
+    "System.Runtime.Serialization.Xml": "4.1.1",
+    "Google.Protobuf": "3.0.0",
+    "X.Grpc": "1.1.0-dev-20160831"
   },
 
   "tools": {
