@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,8 @@ namespace Wukong.Controllers
         {
             Provider = provider;
         }
+
+        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         // GET: /<controller>/
         [HttpPost("{feature}")]
