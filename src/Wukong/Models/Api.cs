@@ -60,6 +60,7 @@ namespace Wukong.Models
     {
         public bool WithFileUrl;
         public string ClientIP;
+        public bool UseCdn;
     }
 
     public class CreateOrUpdateSongListResponse
