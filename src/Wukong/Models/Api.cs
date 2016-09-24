@@ -59,8 +59,6 @@ namespace Wukong.Models
     public class GetSongRequest : ClientSong
     {
         public bool WithFileUrl;
-        public string ClientIP;
-        public bool UseCdn;
     }
 
     public class CreateOrUpdateSongListResponse

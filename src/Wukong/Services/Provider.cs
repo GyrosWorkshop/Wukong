@@ -92,7 +92,11 @@ namespace Wukong.Services
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry++ + " of " + retryCount + ")");
+                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry + " of " + retryCount + ")");
+                }
+                finally
+                {
+                    currentRetry++;
                 }
             }
             
