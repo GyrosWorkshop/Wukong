@@ -73,6 +73,7 @@ namespace Wukong.Models
         public Files Artwork;
         public string Title;
         public Lyric[] Lyrics;
+        public string WebUrl;
     }
 
     public class Lyric
