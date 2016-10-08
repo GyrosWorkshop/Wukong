@@ -64,6 +64,7 @@ namespace Wukong.Models
         public Files Music;
         public double Length;
         public int Bitrate;
+        public Files Mv;
     }
 
     public class SongInfo : ClientSong
@@ -74,6 +75,7 @@ namespace Wukong.Models
         public string Title;
         public Lyric[] Lyrics;
         public string WebUrl;
+        public string MvId;
     }
 
     public class Lyric
