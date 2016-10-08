@@ -18,7 +18,7 @@ namespace Wukong.Services
     public interface IProvider
     {
         Task<List<SongInfo>> Search(SearchSongRequest query);
-        Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null);
+        Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false);
         Task<object> ApiProxy(string feature, object param, string ip = null);
     }
 
@@ -62,7 +62,7 @@ namespace Wukong.Services
             return result;
         }
 
-        public async Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false, string ip = null)
+        public async Task<Song> GetSong(ClientSong clientSong, bool requestUrl = false)
         {
             if (clientSong == null)
             {
@@ -72,8 +72,7 @@ namespace Wukong.Services
             {
                 SiteId = clientSong.SiteId,
                 SongId = clientSong.SongId,
-                WithFileUrl = requestUrl,
-                ClientIP = ip,
+                WithFileUrl = requestUrl
             };
 
             var startTime = DateTime.UtcNow;
@@ -93,7 +92,11 @@ namespace Wukong.Services
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry++ + " of " + retryCount + ")");
+                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry + " of " + retryCount + ")");
+                }
+                finally
+                {
+                    currentRetry++;
                 }
             }
             

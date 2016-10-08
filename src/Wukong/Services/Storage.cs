@@ -36,7 +36,11 @@ namespace Wukong.Services
 
         public void SaveSettings(string userId, Settings settings)
         {
-            UserSettingsMap.AddOrUpdate(userId, settings, (k, v) => settings);
+            UserSettingsMap.AddOrUpdate(userId, settings, (k, v) =>
+            {
+                if (settings.UseCdn != null) v.UseCdn = settings.UseCdn;
+                return v;
+            });
         }
 
         public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider)

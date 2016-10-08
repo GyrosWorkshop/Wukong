@@ -61,8 +61,7 @@ namespace Wukong.Models
 
     public class Song : SongInfo
     {
-        public string File;
-        public string FileViaCdn;
+        public Files Music;
         public double Length;
         public int Bitrate;
     }
@@ -71,9 +70,10 @@ namespace Wukong.Models
     {
         public string Artist;
         public string Album;
-        public string Artwork;
+        public Files Artwork;
         public string Title;
         public Lyric[] Lyrics;
+        public string WebUrl;
     }
 
     public class Lyric
@@ -81,5 +81,11 @@ namespace Wukong.Models
         public bool withTimeline;
         public bool translate;
         public string lyric;
+    }
+
+    public class Files
+    {
+        public string file;
+        public string fileViaCdn;
     }
 }
