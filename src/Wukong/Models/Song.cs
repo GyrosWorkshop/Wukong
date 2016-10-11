@@ -76,6 +76,7 @@ namespace Wukong.Models
         public Lyric[] Lyrics;
         public string WebUrl;
         public string MvId;
+        public string MvWebUrl;
     }
 
     public class Lyric
