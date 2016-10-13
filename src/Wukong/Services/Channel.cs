@@ -328,8 +328,8 @@ namespace Wukong.Services
             if (current?.Song != null)
             {
                 if (NextServerSong != null &&
-                NextServerSong.SiteId == current.Song.SiteId &&
-                NextServerSong.SongId == current.Song.SongId)
+                    NextServerSong.SiteId == current.Song.SiteId &&
+                    NextServerSong.SongId == current.Song.SongId)
                 {
                     song = NextServerSong;
                 }
@@ -337,6 +337,23 @@ namespace Wukong.Services
                 {
                     song = await Provider.GetSong(current.Song, true);
                 }
+            }
+            else
+            {
+                return;
+            }
+
+            if (song == null)
+            {
+                SocketManager.SendMessage(userId != null ? new[] {userId} : List.UserList.ToArray()
+                    , new Message
+                    {
+                        ChannelId = Id,
+                        Sender = "Wukong",
+                        Content = "Ω‚Œˆ ß∞‹£∫" + current.Song.SiteId + "." + current.Song.SongId
+                    });
+                ShouldForwardNow();
+                return;
             }
 
             SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
