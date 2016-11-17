@@ -72,7 +72,8 @@ namespace Wukong.Services
             {
                 SiteId = clientSong.SiteId,
                 SongId = clientSong.SongId,
-                WithFileUrl = requestUrl
+                WithFileUrl = requestUrl,
+                WithCookie = clientSong.WithCookie
             };
 
             var startTime = DateTime.UtcNow;
