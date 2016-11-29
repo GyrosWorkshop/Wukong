@@ -7,6 +7,7 @@ namespace Wukong.Models
     {
         public string SiteId { get; set; }
         public string SongId { get; set; }
+        public string WithCookie { get; set; }
 
         // override object.Equals
         public override bool Equals(object obj)
