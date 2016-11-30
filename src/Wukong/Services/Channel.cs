@@ -298,10 +298,10 @@ namespace Wukong.Services
             List.GoNext();
         }
 
-        private void BroadcastUserListUpdated(string userId = null)
+        private async Task BroadcastUserListUpdated(string userId = null)
         {
             var users = List.UserList;
-            SocketManager.SendMessage(userId != null ? new[] { userId } : users.ToArray(),
+            await SocketManager.SendMessage(userId != null ? new[] { userId } : users.ToArray(),
                 new UserListUpdated
                 {
                     ChannelId = Id,
@@ -309,7 +309,7 @@ namespace Wukong.Services
                 });
         }
 
-        private async void BroadcastNextSongUpdated(ClientSong next, string userId = null)
+        private async Task BroadcastNextSongUpdated(ClientSong next, string userId = null)
         {
             if (next == null) return;
             if (NextServerSong == null || NextServerSong.SongId != next.SongId || NextServerSong.SiteId != next.SiteId)
@@ -317,7 +317,7 @@ namespace Wukong.Services
                 NextServerSong = await Provider.GetSong(next, true);
             }
             if (NextServerSong == null) return;
-            SocketManager.SendMessage(userId != null ? new[] { userId } : UserList.ToArray(),
+            await SocketManager.SendMessage(userId != null ? new[] { userId } : UserList.ToArray(),
                 new NextSongUpdated
                 {
                     ChannelId = Id,
@@ -325,7 +325,7 @@ namespace Wukong.Services
                 });
         }
 
-        private async void BroadcastPlayCurrentSong(UserSong current, string userId = null)
+        private async Task BroadcastPlayCurrentSong(UserSong current, string userId = null)
         {
             Song song = null;
             if (current?.Song != null)
@@ -342,7 +342,7 @@ namespace Wukong.Services
                 }
             }
 
-            SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
+            await SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
                 , new Play
                 {
                     ChannelId = Id,
@@ -353,11 +353,11 @@ namespace Wukong.Services
                 });
         }
 
-        private void EmitChannelInfo(string userId)
+        private async Task EmitChannelInfo(string userId)
         {
-            BroadcastUserListUpdated(userId);
-            BroadcastPlayCurrentSong(List.CurrentPlaying, userId);
-            BroadcastNextSongUpdated(List.NextSong, userId);
+            await BroadcastUserListUpdated(userId);
+            await BroadcastPlayCurrentSong(List.CurrentPlaying, userId);
+            await BroadcastNextSongUpdated(List.NextSong, userId);
         }
     }
 }
