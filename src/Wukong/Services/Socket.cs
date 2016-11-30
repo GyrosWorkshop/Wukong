@@ -21,7 +21,7 @@ namespace Wukong.Services
     {
         event UserIdDelegate ConnectedEvent;
         event UserIdDelegate DisconnectedEvent;
-        Task SendMessage(IEnumerable<string> userIds, WebSocketEvent obj);
+        void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj);
         bool IsConnected(string userId);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
     }
@@ -81,7 +81,7 @@ namespace Wukong.Services
             await StartMonitorSocket(userId, webSocket);
         }
 
-        public async Task SendMessage(IEnumerable<string> userIds, WebSocketEvent obj)
+        public async void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj)
         {
             var settings = new JsonSerializerSettings
             {
