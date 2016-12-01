@@ -251,10 +251,7 @@ namespace Wukong.Services
                 return true;
             }
             if (song != List.CurrentPlaying?.Song)
-            {
-                BroadcastPlayCurrentSong(List.CurrentPlaying, userId);
                 return false;
-            }
             if (force)
                 DownvoteUsers.Add(userId);
             else
