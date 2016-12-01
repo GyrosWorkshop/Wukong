@@ -339,15 +339,19 @@ namespace Wukong.Services
                 }
             }
 
-            SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
-                , new Play
-                {
-                    ChannelId = Id,
-                    Downvote = DownvoteUsers.Contains(userId),
-                    Song = song,
-                    Elapsed = Elapsed,
-                    User = current?.UserId
-                });
+            // ensure song is the current song (due to asynchronous call above)
+            if (song != null && current?.Song != null && song.Equals(current.Song))
+            {
+                SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
+                    , new Play
+                    {
+                        ChannelId = Id,
+                        Downvote = DownvoteUsers.Contains(userId),
+                        Song = song,
+                        Elapsed = Elapsed,
+                        User = current?.UserId
+                    });
+            }
         }
 
         private void EmitChannelInfo(string userId)
