@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "Use wukong-provider: ${WUKONG_PROVIDER}"
-sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER}\"/" appsettings.json
+cp appsettings.template.json appsettings.json
+WUKONG_PROVIDER_ESCAPE=${WUKONG_PROVIDER//\//\\\/}
+sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER_ESCAPE}\"/" appsettings.json
 dotnet run
