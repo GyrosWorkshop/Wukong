@@ -245,7 +245,7 @@ namespace Wukong.Services
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (!List.IsPlaying || List.CurrentPlaying == null || List.CurrentPlaying?.Song == null)
+            if (!List.IsPlaying)
             {
                 ShouldForwardNow();
                 return true;
@@ -337,6 +337,10 @@ namespace Wukong.Services
                 {
                     song = await Provider.GetSong(current.Song, true);
                 }
+            }
+            if (song == null) {
+                ShouldForwardNow();
+                return;
             }
 
             SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
