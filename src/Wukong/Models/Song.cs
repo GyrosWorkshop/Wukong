@@ -21,6 +21,15 @@ namespace Wukong.Models
             return SiteId == song.SiteId && SongId == song.SongId;
         }
 
+        public bool IsEmpty()
+        {
+            if (SiteId == null || SiteId == null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public override int GetHashCode()
         {
             var hash = 17;
