@@ -5,4 +5,4 @@ echo "Use wukong-provider: ${WUKONG_PROVIDER}"
 cp appsettings.template.json appsettings.json
 WUKONG_PROVIDER_ESCAPE=${WUKONG_PROVIDER//\//\\\/}
 sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER_ESCAPE}\"/" appsettings.json
-dotnet run --project src/Wukong/Wukong.csproj
+dotnet run -p src/Wukong/Wukong.csproj -c RELEASE
