@@ -1,6 +1,9 @@
-FROM microsoft/dotnet:1.0.0-preview2-sdk
-RUN mkdir -p /dotnetapp
-COPY src/Wukong /dotnetapp
-WORKDIR /dotnetapp
-RUN dotnet restore
-RUN dotnet build
+FROM microsoft/dotnet:1.1-sdk-msbuild
+RUN mkdir -p /dotnetapp/src/Wukong
+
+COPY Wukong.sln /dotnetapp
+COPY src/Wukong/Wukong.csproj /dotnetapp/src/Wukong
+RUN dotnet restore -m
+
+COPY src/Wukong /dotnetapp/src/Wukong
+RUN dotnet build -m
