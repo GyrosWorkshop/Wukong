@@ -47,6 +47,7 @@ namespace Wukong.Controllers
         [HttpPost("updateNextSong/{channelId}")]
         public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
+            if (song.IsEmpty()) song = null;
             // FIXME: test whether user joined this channel.
             var channel = Storage.GetChannel(channelId);
             channel?.UpdateSong(UserId, song);

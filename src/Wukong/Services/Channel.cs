@@ -137,7 +137,7 @@ namespace Wukong.Services
         public void SetSong(string userId, ClientSong song)
         {
             var userSong = UserSong(userId);
-            if (userSong != null && !song.IsEmpty())
+            if (userSong != null)
             {
                 userSong.Song = song;
             }
