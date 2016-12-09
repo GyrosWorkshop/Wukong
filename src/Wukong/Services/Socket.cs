@@ -16,11 +16,8 @@ using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {
-    public delegate void UserIdDelegate(string userId);
     public interface ISocketManager
     {
-        event UserIdDelegate ConnectedEvent;
-        event UserIdDelegate DisconnectedEvent;
         void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj);
         bool IsConnected(string userId);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
@@ -54,14 +51,14 @@ namespace Wukong.Services
 
     public class SocketManager : ISocketManager
     {
+        private IUserManager _userManager;
         private readonly ILogger Logger;
-        public event UserIdDelegate ConnectedEvent;
-        public event UserIdDelegate DisconnectedEvent;
 
-        public SocketManager(ILoggerFactory loggerFactory)
+        public SocketManager(ILoggerFactory loggerFactory, IUserManager userManager)
         {
             Logger = loggerFactory.CreateLogger("SockerManager");
             Logger.LogDebug("SocketManager initialized");
+            _userManager = userManager;
         }
 
         private readonly Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
@@ -69,7 +66,7 @@ namespace Wukong.Services
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId)
         {
-            ResetTimer(userId);
+            _userManager.GetUser(userId).Connect();
             verifiedSocket.AddOrUpdate(userId,
                 webSocket,
                 (key, socket) =>
@@ -77,7 +74,6 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-            ConnectedEvent?.Invoke(userId);
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -118,7 +114,7 @@ namespace Wukong.Services
                             throw new Exception("socket closed");
                         case WebSocketMessageType.Text:
                         case WebSocketMessageType.Binary:
-                            Logger.LogError("user: " + userId + " send message, dropped.");
+                            Logger.LogError($"user: {userId} send message, dropped.");
                             break;
                     }
                 }
@@ -129,38 +125,13 @@ namespace Wukong.Services
             }
             finally
             {
-                Logger.LogDebug("user: " + userId + " socket disposed.");
+                Logger.LogDebug($"user: {userId} socket disposed.");
                 WebSocket ws;
                 if (verifiedSocket.TryRemove(userId, out ws))
                 {
                     socket?.Dispose();
                 }
-                StartDisconnecTimer(userId);
-            }
-        }
-
-        private void StartDisconnecTimer(string userId)
-        {
-            disconnectTimer[userId] = new Timer(Timeout, userId, 15 * 1000, Infinite);
-        }
-
-        private void Timeout(object userId)
-        {
-            var id = (string)userId;
-            Logger.LogInformation($"user {id} timeout.");
-            ResetTimer(id);
-            DisconnectedEvent?.Invoke(id);
-        }
-
-
-        private void ResetTimer(string userId)
-        {
-            if (userId != null && disconnectTimer.ContainsKey(userId))
-            {
-                var timer = disconnectTimer[userId];
-                disconnectTimer.Remove(userId);
-                timer.Change(Infinite, Infinite);
-                timer.Dispose();
+                _userManager.GetUser(userId)?.Disconnect();
             }
         }
 

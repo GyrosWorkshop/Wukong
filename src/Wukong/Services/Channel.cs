@@ -177,6 +177,7 @@ namespace Wukong.Services
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
         private readonly IStorage Storage;
+        private readonly IUserManager UserManager;
 
         private readonly ISet<string> FinishedUsers = new HashSet<string>();
         private readonly ISet<string> DownvoteUsers = new HashSet<string>();
@@ -190,12 +191,13 @@ namespace Wukong.Services
         private Song NextServerSong;
         public List<string> UserList => List.UserList;
 
-        public Channel(string id, ISocketManager socketManager, IProvider provider, IStorage storage)
+        public Channel(string id, ISocketManager socketManager, IProvider provider, IStorage storage, IUserManager userManager)
         {
             Id = id;
             SocketManager = socketManager;
             Provider = provider;
             Storage = storage;
+            UserManager = userManager;
 
             List.CurrentChanged += song =>
             {
@@ -302,7 +304,7 @@ namespace Wukong.Services
                 new UserListUpdated
                 {
                     ChannelId = Id,
-                    Users = users.Select(it => Storage.GetOrCreateUser(it)).ToList()
+                    Users = users.Select(it => UserManager.GetUser(it)).ToList()
                 });
         }
 

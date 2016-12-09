@@ -20,12 +20,14 @@ namespace Wukong.Controllers
         private readonly IProvider Provider;
         private readonly IUserSongListRepository UserSongListRepository;
         private readonly IStorage Storage;
+        private readonly IUserService UserService;
 
-        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IStorage storage)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IStorage storage, IUserService userService)
         {
             UserSongListRepository = userSongListRepository;
             Storage = storage;
             Provider = provider;
+            UserService = userService;
         }
 
         string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -33,17 +35,7 @@ namespace Wukong.Controllers
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()
         {
-            var user = Storage.GetOrCreateUser(UserId);
-            // TODO(Leeleo3x): In the future we should make request to get more user info.
-            user.UpdateFromClaims(HttpContext.User);
-            return new ObjectResult(user);
-        }
-
-        [HttpPost("settings")]
-        public IActionResult SaveSettings([FromBody] Settings settings)
-        {
-            Storage.SaveSettings(UserId, settings);
-            return NoContent();
+            return new ObjectResult(UserService.User);
         }
 
         [HttpPost("songList/{id}")]

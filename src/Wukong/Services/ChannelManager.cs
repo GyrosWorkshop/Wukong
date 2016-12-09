@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Wukong.Models;
 
 namespace Wukong.Services
 {
@@ -16,22 +17,24 @@ namespace Wukong.Services
         private readonly IStorage Storage;
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
+        private readonly IUserManager UserManager;
 
-        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager, IProvider provider)
+        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager, IProvider provider, IUserManager userManager)
         {
             Logger = loggerFactory.CreateLogger<ChannelManager>();
             Storage = storage;
             Provider = provider;
             SocketManager = socketManager;
-            SocketManager.ConnectedEvent += UserConnected;
-            SocketManager.DisconnectedEvent += UserDisconnected;
+            UserManager = userManager;
+            UserManager.UserConnected += UserConnected;
+            UserManager.UserTimeout += UserTimeout;
         }
 
         public void JoinAndLeavePreviousChannel(string channelId, string userId)
         {
             if (channelId == Storage.GetChannelByUser(userId)?.Id) return;
             Leave(userId);
-            var channel = Storage.GetOrCreateChannel(channelId, SocketManager, Provider);
+            var channel = Storage.GetOrCreateChannel(channelId, SocketManager, Provider, UserManager);
             channel.Join(userId);
         }
 
@@ -49,14 +52,14 @@ namespace Wukong.Services
             Storage.RemoveChannel(channel.Id);
         }
 
-        private void UserConnected(string userId)
+        private void UserConnected(User user)
         {
-            Storage.GetChannelByUser(userId)?.Connect(userId);
+            Storage.GetChannelByUser(user.Id)?.Connect(user.Id);
         }
 
-        private void UserDisconnected(string userId)
+        private void UserTimeout(User user)
         {
-            Leave(userId);
+            Leave(user.Id);
         }
     }
 }

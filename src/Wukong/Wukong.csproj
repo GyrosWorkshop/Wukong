@@ -109,6 +109,9 @@
     <PackageReference Include="Nito.AsyncEx">
       <Version>3.0.1</Version>
     </PackageReference>
+    <PackageReference Include="Stateless">
+      <Version>3.0.1</Version>
+    </PackageReference>
     <PackageReference Include="System.Runtime.Serialization.Primitives">
       <Version>4.1.1</Version>
     </PackageReference>
