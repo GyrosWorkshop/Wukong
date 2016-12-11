@@ -344,7 +344,7 @@ namespace Wukong.Services
                 {
                     ChannelId = Id,
                     Downvote = DownvoteUsers.Contains(userId),
-                    Song = song,
+                    Song = song != null ? song : NextServerSong,    // Workaround for play song == null problem
                     Elapsed = Elapsed,
                     User = current?.UserId
                 });
