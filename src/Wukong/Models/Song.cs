@@ -71,7 +71,7 @@ namespace Wukong.Models
 
     public class Song : SongInfo
     {
-        public Files Music;
+        public Files[] Musics;
         public double Length;
         public int Bitrate;
         public Files Mv;
@@ -98,6 +98,9 @@ namespace Wukong.Models
 
     public class Files
     {
+        public string AudioQuality;
+        public int AudioBitrate;
+        public string Format;
         public string file;
         public string fileViaCdn;
     }
