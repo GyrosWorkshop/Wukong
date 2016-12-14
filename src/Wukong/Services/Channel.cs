@@ -177,6 +177,7 @@ namespace Wukong.Services
         private readonly ISocketManager SocketManager;
         private readonly IProvider Provider;
         private readonly IStorage Storage;
+        private readonly IUserManager UserManager;
 
         private readonly ISet<string> FinishedUsers = new HashSet<string>();
         private readonly ISet<string> DownvoteUsers = new HashSet<string>();
@@ -190,12 +191,13 @@ namespace Wukong.Services
         private Song NextServerSong;
         public List<string> UserList => List.UserList;
 
-        public Channel(string id, ISocketManager socketManager, IProvider provider, IStorage storage)
+        public Channel(string id, ISocketManager socketManager, IProvider provider, IStorage storage, IUserManager userManager)
         {
             Id = id;
             SocketManager = socketManager;
             Provider = provider;
             Storage = storage;
+            UserManager = userManager;
 
             List.CurrentChanged += song =>
             {
@@ -245,17 +247,9 @@ namespace Wukong.Services
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (!List.IsPlaying || List.CurrentPlaying == null || List.CurrentPlaying?.Song == null)
-            {
-                ShouldForwardNow();
-                return true;
-            }
-            if (song != List.CurrentPlaying?.Song)
-                return false;
-            if (force)
-                DownvoteUsers.Add(userId);
-            else
-                FinishedUsers.Add(userId);
+            if (song != List.CurrentPlaying?.Song) return false;
+            if (force) DownvoteUsers.Add(userId);
+            else FinishedUsers.Add(userId);
             CheckShouldForwardCurrentSong();
             return true;
         }
@@ -271,18 +265,18 @@ namespace Wukong.Services
             var downVoteUserCount = DownvoteUsers.Intersect(userList).Count;
             var undeterminedCount = userList.Except(DownvoteUsers).Except(FinishedUsers).Count();
             var connectedUserCount = userList.Select(it => SocketManager.IsConnected(it)).Count();
-            if (downVoteUserCount >= QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
+            if (!List.IsPlaying || downVoteUserCount >= QueryForceForwardCount(connectedUserCount) || undeterminedCount == 0)
             {
                 ShouldForwardNow();
             }
             else if (undeterminedCount <= connectedUserCount * 0.5)
             {
                 if (FinishTimeoutTimer != null) return;
-                FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 10 * 1000, Infinite);
+                FinishTimeoutTimer = new Timer(ShouldForwardNow, null, 5 * 1000, Infinite);
             }
         }
 
-        private int QueryForceForwardCount(int total)
+        private static int QueryForceForwardCount(int total)
         {
             return Convert.ToInt32(Math.Ceiling((double)total / 2));
         }
@@ -302,7 +296,7 @@ namespace Wukong.Services
                 new UserListUpdated
                 {
                     ChannelId = Id,
-                    Users = users.Select(it => Storage.GetOrCreateUser(it)).ToList()
+                    Users = users.Select(it => UserManager.GetUser(it)).ToList()
                 });
         }
 

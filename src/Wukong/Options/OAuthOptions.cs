@@ -9,7 +9,7 @@ namespace Wukong.Options
 {
     public class OAuthOptions
     {
-        static public GoogleOptions GoogleOAuthOptions(string clientId, string clientSecret)
+        public static GoogleOptions GoogleOAuthOptions(string clientId, string clientSecret)
         {
             return new GoogleOptions
             {
@@ -23,7 +23,6 @@ namespace Wukong.Options
                     OnCreatingTicket = (context) =>
                     {
                         var user = context.User;
-
 
                         var userId = user.Value<string>("id");
                         if (!string.IsNullOrEmpty(userId))

@@ -67,6 +67,8 @@ namespace Wukong
             services.AddSingleton<IProvider, Provider>();
             services.AddSingleton<IChannelManager, ChannelManager>();
             services.AddSingleton<IStorage, Storage>();
+            services.AddSingleton<IUserManager, UserManager>();
+            services.AddScoped<IUserService, UserService>();
 
             // services.Configure<MvcOptions>(options =>
             // {
@@ -99,6 +101,7 @@ namespace Wukong
                 Configuration["Authentication:Google:ClientSecret"]));
             app.UseWebSockets();
             app.UseMiddleware<SocketManagerMiddleware>();
+            app.UseMiddleware<UserManagerMiddleware>();
             app.UseSession();
             app.UseMvc();
         }
