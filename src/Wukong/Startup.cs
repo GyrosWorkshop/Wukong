@@ -101,6 +101,7 @@ namespace Wukong
                 Configuration["Authentication:Google:ClientSecret"]));
             app.UseWebSockets();
             app.UseMiddleware<SocketManagerMiddleware>();
+            app.UseMiddleware<UserManagerMiddleware>();
             app.UseSession();
             app.UseMvc();
         }

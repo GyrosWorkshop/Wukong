@@ -17,12 +17,14 @@ namespace Wukong.Controllers
         private readonly ILogger Logger;
         private readonly IChannelManager ChannelManager;
         private readonly IStorage Storage;
+        private readonly IUserService UserService;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage)
+        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage, IUserService userService)
         {
             Logger = loggerFactory.CreateLogger("ChannelController");
             ChannelManager = channelManager;
             Storage = storage;
+            UserService = userService;
         }
 
         string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -47,8 +49,7 @@ namespace Wukong.Controllers
         [HttpPost("updateNextSong/{channelId}")]
         public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
-            // FIXME: test whether user joined this channel.
-            var channel = Storage.GetChannel(channelId);
+            var channel = Storage.GetChannelByUser(UserService.User.Id);
             channel?.UpdateSong(UserId, song);
         }
 
