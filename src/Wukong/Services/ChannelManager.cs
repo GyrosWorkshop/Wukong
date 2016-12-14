@@ -38,11 +38,6 @@ namespace Wukong.Services
             channel.Join(userId);
         }
 
-        public void BroadCastUserList(Channel channel, string userId = null)
-        {
-            var userList = userId != null ? new List<string> { userId } : channel.UserList;
-        }
-
         public void Leave(string userId)
         {
             var channel = Storage.GetChannelByUser(userId);

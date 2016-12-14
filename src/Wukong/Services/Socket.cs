@@ -66,7 +66,6 @@ namespace Wukong.Services
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId)
         {
-            _userManager.GetUser(userId).Connect();
             verifiedSocket.AddOrUpdate(userId,
                 webSocket,
                 (key, socket) =>
@@ -74,6 +73,7 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
+            _userManager.GetUser(userId).Connect();
             await StartMonitorSocket(userId, webSocket);
         }
 

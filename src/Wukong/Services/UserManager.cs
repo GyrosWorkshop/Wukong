@@ -55,16 +55,19 @@ namespace Wukong.Services
             user?.UpdateFromClaims(claims);
             if (user != null)
             {
-                user.UserConnected -= UserConnected;
-                user.UserDisconnected -= UserDisconnected;
-                user.UserTimeout -= UserTimeout;
-                user.UserConnected += UserConnected;
-                user.UserDisconnected += UserDisconnected;
-                user.UserTimeout += UserTimeout;
+                user.UserConnected -= OnUserConnected;
+                user.UserDisconnected -= OnUserDisconnected;
+                user.UserTimeout -= OnUserTimeout;
+                user.UserConnected += OnUserConnected;
+                user.UserDisconnected += OnUserDisconnected;
+                user.UserTimeout += OnUserTimeout;
             }
-
             return user;
         }
+
+        private void OnUserConnected(User user) => UserConnected?.Invoke(user);
+        private void OnUserDisconnected(User user) => UserDisconnected?.Invoke(user);
+        private void OnUserTimeout(User user) => UserTimeout?.Invoke(user);
 
         private User GetOrCreate(string userId)
         {
