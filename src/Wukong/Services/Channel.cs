@@ -137,7 +137,7 @@ namespace Wukong.Services
         public void SetSong(string userId, ClientSong song)
         {
             var userSong = UserSong(userId);
-            if (userSong != null && !song.IsEmpty())
+            if (userSong != null)
             {
                 userSong.Song = song;
             }
@@ -346,7 +346,7 @@ namespace Wukong.Services
                 {
                     ChannelId = Id,
                     Downvote = DownvoteUsers.Contains(userId),
-                    Song = song,
+                    Song = song != null ? song : NextServerSong,    // Workaround for play song == null problem
                     Elapsed = Elapsed,
                     User = current?.UserId
                 });

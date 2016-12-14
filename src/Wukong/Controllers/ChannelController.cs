@@ -31,9 +31,10 @@ namespace Wukong.Controllers
 
         // POST api/channel/join
         [HttpPost("join/{channelId}")]
-        public void Join(string channelId)
+        public ActionResult Join(string channelId)
         {
             ChannelManager.JoinAndLeavePreviousChannel(channelId, UserId);
+            return NoContent();
         }
 
         [HttpPost("finished/{channelId}")]
@@ -47,10 +48,12 @@ namespace Wukong.Controllers
 
         // POST api/channel/updateNextSong
         [HttpPost("updateNextSong/{channelId}")]
-        public void UpdateNextSong(string channelId, [FromBody] ClientSong song)
+        public ActionResult UpdateNextSong(string channelId, [FromBody] ClientSong song)
         {
             var channel = Storage.GetChannelByUser(UserService.User.Id);
+            if (song.IsEmpty()) song = null;
             channel?.UpdateSong(UserId, song);
+            return NoContent();
         }
 
         [HttpPost("downVote/{channelId}")]
