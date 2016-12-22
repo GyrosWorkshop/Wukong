@@ -247,7 +247,10 @@ namespace Wukong.Services
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (song != List.CurrentPlaying?.Song) return false;
+            if (song != List.CurrentPlaying?.Song) {
+                CheckShouldForwardCurrentSong();
+                return false;
+            }
             if (force) DownvoteUsers.Add(userId);
             else FinishedUsers.Add(userId);
             CheckShouldForwardCurrentSong();
