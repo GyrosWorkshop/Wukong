@@ -41,7 +41,7 @@ namespace Wukong.Controllers
         public ActionResult Finished([FromBody] ClientSong song)
         {
             var success = Storage.GetChannelByUser(UserService.User.Id)?.ReportFinish(UserId, song);
-            if (success) return NoContent();
+            if (success == true) return NoContent();
             return BadRequest();
         }
 
