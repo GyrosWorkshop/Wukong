@@ -30,7 +30,7 @@ namespace Wukong.Controllers
         string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         // POST api/channel/join
-        [HttpPost("join")]
+        [HttpPost("join/{channelId}")]
         public ActionResult Join(string channelId)
         {
             ChannelManager.JoinAndLeavePreviousChannel(channelId, UserId);
@@ -41,7 +41,7 @@ namespace Wukong.Controllers
         public ActionResult Finished([FromBody] ClientSong song)
         {
             var success = Storage.GetChannelByUser(UserService.User.Id)?.ReportFinish(UserId, song);
-            if (success == true) return NoContent();
+            if (success) return NoContent();
             return BadRequest();
         }
 
