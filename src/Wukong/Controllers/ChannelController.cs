@@ -37,16 +37,16 @@ namespace Wukong.Controllers
             return NoContent();
         }
 
-        [HttpPost("finished/{channelId}")]
-        public ActionResult Finished(string channelId, [FromBody] ClientSong song)
+        [HttpPost("finished")]
+        public ActionResult Finished([FromBody] ClientSong song)
         {
             var success = Storage.GetChannelByUser(UserService.User.Id)?.ReportFinish(UserId, song);
             if (success == true) return NoContent();
             return BadRequest();
         }
 
-        [HttpPost("updateNextSong/{channelId}")]
-        public ActionResult UpdateNextSong(string channelId, [FromBody] ClientSong song)
+        [HttpPost("updateNextSong")]
+        public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
             if (song.IsEmpty()) song = null;
             var channel = Storage.GetChannelByUser(UserService.User.Id);
@@ -54,8 +54,8 @@ namespace Wukong.Controllers
             return NoContent();
         }
 
-        [HttpPost("downVote/{channelId}")]
-        public ActionResult DownVote(string channelId, [FromBody] ClientSong song)
+        [HttpPost("downVote")]
+        public ActionResult DownVote([FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
             var channel = Storage.GetChannelByUser(UserService.User.Id);
