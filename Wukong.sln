@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.25928.0
+VisualStudioVersion = 15.0.26020.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{467A9C53-814F-4B7D-ADDF-C3A7BE98E006}"
 EndProject
@@ -20,8 +20,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{6062547B-947C-4F34-9BF8-A436AA45ED77}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
