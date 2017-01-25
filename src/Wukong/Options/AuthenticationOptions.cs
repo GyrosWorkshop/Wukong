@@ -2,6 +2,8 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Storage;
+
 namespace Wukong.Options
 {
     public class AuthenticationOptions
@@ -11,7 +13,7 @@ namespace Wukong.Options
             return new CookieAuthenticationOptions
             {
                 AuthenticationScheme = "Cookies",
-                SessionStore = new MemoryCacheSessionStore(),
+                SessionStore = new MemoryCacheStore(),
                 LoginPath = "/oauth/google",
                 ExpireTimeSpan = TimeSpan.FromDays(30),
                 AutomaticAuthenticate = true,
