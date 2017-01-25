@@ -89,6 +89,7 @@ namespace Wukong
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
+            app.UseSession();
             app.UseApplicationInsightsRequestTelemetry();
             app.UseApplicationInsightsExceptionTelemetry();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -102,7 +103,6 @@ namespace Wukong
             app.UseWebSockets();
             app.UseMiddleware<SocketManagerMiddleware>();
             app.UseMiddleware<UserManagerMiddleware>();
-            app.UseSession();
             app.UseMvc();
         }
     }

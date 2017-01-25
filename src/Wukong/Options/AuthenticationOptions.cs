@@ -11,6 +11,7 @@ namespace Wukong.Options
             return new CookieAuthenticationOptions
             {
                 AuthenticationScheme = "Cookies",
+                SessionStore = new MemoryCacheSessionStore(),
                 LoginPath = "/oauth/google",
                 ExpireTimeSpan = TimeSpan.FromDays(30),
                 AutomaticAuthenticate = true,
