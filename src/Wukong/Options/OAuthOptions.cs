@@ -4,6 +4,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Wukong.Models;
+using System;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Collections.Generic;
 
 namespace Wukong.Options
 {
@@ -39,6 +42,11 @@ namespace Wukong.Options
                         var avatar = user["image"]?.Value<string>("url");
                         if (!string.IsNullOrEmpty(avatar))
                         {
+                            // manipulate url and avatar size
+                            var avatarUriBuilder = new UriBuilder(avatar);
+                            avatarUriBuilder.Query = null;
+                            avatar = QueryHelpers.AddQueryString(avatarUriBuilder.ToString(), new Dictionary<string, string> { { "sz", "200" } });
+                            
                             // TODO(Leeleo3x): Use all custom claim types or extend existing claim types.
                             context.Identity.AddClaim(new Claim(User.AvartaKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                         }
