@@ -6,3 +6,8 @@ COPY Wukong.sln /dotnetapp
 COPY WukongNew /dotnetapp/WukongNew
 RUN dotnet restore -m
 RUN dotnet build -m
+
+COPY start.sh /
+RUN chmod +x /start.sh
+EXPOSE 5000
+CMD /start.sh
