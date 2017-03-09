@@ -1,10 +1,10 @@
 FROM microsoft/dotnet:1.1-sdk-msbuild
-RUN mkdir -p /dotnetapp/src/Wukong
+RUN mkdir -p /dotnetapp/WukongNew/Wukong
 WORKDIR /dotnetapp
 
 COPY Wukong.sln /dotnetapp
-COPY src/Wukong/Wukong.csproj /dotnetapp/src/Wukong
+COPY WukongNew/Wukong/Wukong.csproj /dotnetapp/WukongNew/Wukong
 RUN dotnet restore -m
 
-COPY src/Wukong /dotnetapp/src/Wukong
+COPY WukongNew/Wukong /dotnetapp/WukongNew/Wukong
 RUN dotnet build -m
