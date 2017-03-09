@@ -3,8 +3,6 @@ RUN mkdir -p /dotnetapp/WukongNew/Wukong
 WORKDIR /dotnetapp
 
 COPY Wukong.sln /dotnetapp
-COPY WukongNew/Wukong/Wukong.csproj /dotnetapp/WukongNew/Wukong
+COPY WukongNew /dotnetapp/Wukong
 RUN dotnet restore -m
-
-COPY WukongNew/Wukong /dotnetapp/WukongNew/Wukong
 RUN dotnet build -m
