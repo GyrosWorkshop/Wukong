@@ -31,18 +31,6 @@ namespace Wukong.Options
                     {
                         var user = context.User;
 
-                        var userId = user.Value<string>("id");
-                        if (!string.IsNullOrEmpty(userId))
-                        {
-                            context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId, ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                        }
-
-                        var userName = user.Value<string>("displayName");
-                        if (!string.IsNullOrEmpty(userName))
-                        {
-                            context.Identity.AddClaim(new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                        }
-
                         var avatar = user["image"]?.Value<string>("url");
                         if (!string.IsNullOrEmpty(avatar))
                         {
@@ -64,6 +52,32 @@ namespace Wukong.Options
                     },
                 },
 
+            };
+        }
+
+        public static MicrosoftAccountOptions MicrosoftOAuthOptions(string clientId, string clientSecret)
+        {
+            return new MicrosoftAccountOptions
+            {
+                DisplayName = "Microsoft Account",
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                CallbackPath = "/oauth-redirect/microsoft",
+                SaveTokens = true,
+                Events = new OAuthEvents
+                {
+                    OnCreatingTicket = context =>
+                    {
+                        var user = context.User;
+                        var userId = user.Value<string>("id");
+                        var avatar = string.Format("https://apis.live.net/v5.0/{0}/picture", userId);
+                        context.Identity.AddClaim(new Claim(User.AvatarKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
+
+                        context.Identity.AddClaim(new Claim(ClaimTypes.Authentication, "true", ClaimValueTypes.Boolean, context.Options.ClaimsIssuer));
+                        context.Identity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, context.Options.AuthenticationScheme, ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                        return Task.FromResult(0);
+                    }
+                }
             };
         }
 

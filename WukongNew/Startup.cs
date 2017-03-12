@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -70,7 +71,9 @@ namespace Wukong
             services.AddSingleton<IStorage, Storage>();
             services.AddSingleton<IUserManager, UserManager>();
             services.AddScoped<IUserService, UserService>();
-            
+
+            services.AddAuthentication(options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
+
             services.AddMvc()
                 .AddJsonOptions(opt =>
                 {
@@ -98,6 +101,8 @@ namespace Wukong
 
             app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Configuration["Authentication:GitHub:ClientId"],
                 Configuration["Authentication:GitHub:ClientSecret"]));
+            app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(Configuration["Authentication:Microsoft:ClientId"],
+                Configuration["Authentication:Microsoft:ClientSecret"]));
             app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));
 
