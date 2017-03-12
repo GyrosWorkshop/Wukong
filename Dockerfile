@@ -13,4 +13,4 @@ COPY start.sh /
 RUN chmod +x /start.sh
 
 EXPOSE 5000
-CMD /start.sh
+CMD ["/start.sh"]
