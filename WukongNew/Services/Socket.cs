@@ -12,7 +12,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Wukong.Models;
 using Microsoft.Extensions.Logging;
-using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {

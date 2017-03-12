@@ -1,16 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Authentication;
+using System.Linq;
+using Wukong.Models;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace Wukong.Controllers
 {
     [Route("oauth")]
     public class OAuthController : Controller
     {
-        [HttpGet("google")]
-        public IActionResult GoogleAsync(string redirectUri = "/api/user/login")
+
+        [HttpGet("all")]
+        public List<OAuthMethod> AllSchemes()
         {
-            return new ChallengeResult("Google", properties: new AuthenticationProperties() { RedirectUri = redirectUri });
+            var methods = new List<OAuthMethod>();
+            foreach (var type in HttpContext.Authentication.GetAuthenticationSchemes())
+            {
+                if (type.DisplayName != null)
+                {
+                    methods.Add(new OAuthMethod
+                    {
+                        Scheme = type.AuthenticationScheme,
+                        DisplayName = type.DisplayName,
+                        Url = "/oauth/go/" + type.AuthenticationScheme
+                    });
+                }
+            }
+            return methods;
+        }
+
+        [HttpGet("go/{oAuthProvider}")]
+        public IActionResult OAuthChallengeAsync(string oAuthProvider, string redirectUri = "/")
+        {
+            oAuthProvider = oAuthProvider.First().ToString().ToUpper() + oAuthProvider.Substring(1);
+            return new ChallengeResult(oAuthProvider, properties: new AuthenticationProperties() { RedirectUri = redirectUri });
         }
     }
-
 }

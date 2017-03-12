@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,11 +70,7 @@ namespace Wukong
             services.AddSingleton<IStorage, Storage>();
             services.AddSingleton<IUserManager, UserManager>();
             services.AddScoped<IUserService, UserService>();
-
-            // services.Configure<MvcOptions>(options =>
-            // {
-            //     options.Filters.Add(new RequireHttpsAttribute ());
-            // });
+            
             services.AddMvc()
                 .AddJsonOptions(opt =>
                 {
@@ -97,11 +95,16 @@ namespace Wukong
             });
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions());
-            app.UseGoogleAuthentication(Options.OAuthOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
+
+            app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));
+            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Configuration["Authentication:GitHub:ClientId"],
+                Configuration["Authentication:GitHub:ClientSecret"]));
+
             app.UseWebSockets();
             app.UseMiddleware<SocketManagerMiddleware>();
             app.UseMiddleware<UserManagerMiddleware>();
+
             app.UseMvc();
         }
     }

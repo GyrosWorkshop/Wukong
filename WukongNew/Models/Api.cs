@@ -10,6 +10,13 @@ namespace Wukong.Models
         public User User;
     }
 
+    public class OAuthMethod
+    {
+        public string Scheme;
+        public string DisplayName;
+        public string Url;
+    }
+
     public class WebSocketEvent
     {
         public string EventName;
