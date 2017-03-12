@@ -21,6 +21,8 @@ namespace Wukong.Models
 
         public string DisplayName { get; private set; }
 
+        public string FromSite { get; private set; }
+
         private readonly StateMachine<UserState, UserTrigger> _userStateMachine =
             new StateMachine<UserState, UserTrigger>(UserState.Created);
 
@@ -84,6 +86,7 @@ namespace Wukong.Models
             UserName = claims.FindFirst(ClaimTypes.Name)?.Value ?? UserName;
             Avatar = claims.FindFirst(AvatarKey)?.Value ?? Avatar;
             DisplayName = claims.FindFirst(ClaimTypes.Name)?.Value;
+            FromSite = claims.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
         }
 
         private void StartDisconnectTimer()
