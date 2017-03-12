@@ -1,6 +1,7 @@
 FROM microsoft/dotnet:1.1.1-sdk
 WORKDIR /dotnetapp
 
+RUN mkdir -p /dotnetapp
 COPY Wukong.sln /dotnetapp/
 COPY WukongNew /dotnetapp/WukongNew/
 RUN dotnet restore -m
