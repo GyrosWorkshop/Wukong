@@ -343,7 +343,10 @@ namespace Wukong.Services
                         Song = song ?? new Song
                         {
                             SiteId = current.Song.SiteId,
-                            SongId = current.Song.SongId
+                            SongId = current.Song.SongId,
+                            Title = "server load error",
+                            Artist = current.Song.SiteId,
+                            Album = current.Song.SongId
                         },    // Workaround for play song == null problem
                     Elapsed = Elapsed,
                         User = current?.UserId
