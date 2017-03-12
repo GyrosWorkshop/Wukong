@@ -249,6 +249,8 @@ namespace Wukong.Services
         {
             if (song != List.CurrentPlaying?.Song) {
                 CheckShouldForwardCurrentSong();
+                // Workaround: told the user the current song
+                EmitChannelInfo(userId);
                 return false;
             }
             if (force) DownvoteUsers.Add(userId);
