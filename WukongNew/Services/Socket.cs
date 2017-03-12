@@ -32,7 +32,7 @@ namespace Wukong.Services
         }
         public async Task Invoke(HttpContext ctx, ISocketManager socketManager)
         {
-            if (ctx.WebSockets.IsWebSocketRequest)
+            if (ctx.WebSockets.IsWebSocketRequest && ctx.Request.Path.ToString() == "/api/ws")
             {
                 if (ctx.User?.FindFirst(ClaimTypes.Authentication)?.Value != "true")
                 {
