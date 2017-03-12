@@ -11,7 +11,7 @@ namespace Wukong.Models
 
     public class User
     {
-        public static readonly string AvartaKey = "avarta";
+        public static readonly string AvatarKey = "avatar";
 
         public string UserName { get; private set; }
 
@@ -82,7 +82,7 @@ namespace Wukong.Models
         public void UpdateFromClaims(ClaimsPrincipal claims)
         {
             UserName = claims.FindFirst(ClaimTypes.Name)?.Value ?? UserName;
-            Avatar = claims.FindFirst(AvartaKey)?.Value ?? Avatar;
+            Avatar = claims.FindFirst(AvatarKey)?.Value ?? Avatar;
             DisplayName = claims.FindFirst(ClaimTypes.Name)?.Value;
         }
 

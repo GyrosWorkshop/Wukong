@@ -59,10 +59,11 @@ namespace Wukong.Options
                         var avatar = user.Value<string>("avatar_url");
                         if (!string.IsNullOrEmpty(avatar))
                         {
-                            context.Identity.AddClaim(new Claim(User.AvartaKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                            context.Identity.AddClaim(new Claim(User.AvatarKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                         }
 
                         context.Identity.AddClaim(new Claim(ClaimTypes.Authentication, "true", ClaimValueTypes.Boolean, context.Options.ClaimsIssuer));
+                        context.Identity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, context.Options.AuthenticationScheme, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                     }
                 }
             };
@@ -105,10 +106,12 @@ namespace Wukong.Options
                             avatar = QueryHelpers.AddQueryString(avatarUriBuilder.ToString(), new Dictionary<string, string> { { "sz", "200" } });
                             
                             // TODO(Leeleo3x): Use all custom claim types or extend existing claim types.
-                            context.Identity.AddClaim(new Claim(User.AvartaKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                            context.Identity.AddClaim(new Claim(User.AvatarKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                         }
 
                         context.Identity.AddClaim(new Claim(ClaimTypes.Authentication, "true", ClaimValueTypes.Boolean, context.Options.ClaimsIssuer));
+                        context.Identity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, context.Options.AuthenticationScheme, ClaimValueTypes.String, context.Options.ClaimsIssuer));
+
                         return Task.FromResult(0);
                     },
                 },
