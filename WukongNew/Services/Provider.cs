@@ -79,30 +79,22 @@ namespace Wukong.Services
             var startTime = DateTime.UtcNow;
             var timer = System.Diagnostics.Stopwatch.StartNew();
             Song result = null;
-            int retryCount = 3, currentRetry = 0;
-            // tripple retries max
-            while (result == null && currentRetry <= retryCount)
+            try
             {
-                try
+                var response = await client.PostAsync("api/songInfo", request, formatter);
+                if (response.IsSuccessStatusCode)
                 {
-                    var response = await client.PostAsync("api/songInfo", request, formatter);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        result = await response.Content.ReadAsAsync<Song>();
-                    }
+                    result = await response.Content.ReadAsAsync<Song>();
                 }
-                catch (Exception ex)
-                {
-                    Logger.LogError(new EventId(), ex, "Fetch songInfo (" + currentRetry + " of " + retryCount + ")");
-                }
-                finally
-                {
-                    currentRetry++;
-                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(new EventId(), ex, "Fetch songInfo");
             }
             
             timer.Stop();
             Telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
+
             return result;
         }
 

@@ -33,7 +33,6 @@ namespace Wukong.Controllers
         [HttpGet("go/{oAuthProvider}")]
         public IActionResult OAuthChallengeAsync(string oAuthProvider, string redirectUri = "/")
         {
-            oAuthProvider = oAuthProvider.First().ToString().ToUpper() + oAuthProvider.Substring(1);
             return new ChallengeResult(oAuthProvider, properties: new AuthenticationProperties() { RedirectUri = redirectUri });
         }
     }

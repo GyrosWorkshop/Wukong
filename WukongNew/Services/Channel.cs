@@ -334,16 +334,39 @@ namespace Wukong.Services
                 {
                     song = await Provider.GetSong(current.Song, true);
                 }
-            }
 
-            SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
-                , new Play
+                SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray()
+                    , new Play
+                    {
+                        ChannelId = Id,
+                        Downvote = DownvoteUsers.Contains(userId),
+                        Song = song ?? new Song
+                        {
+                            SiteId = current.Song.SiteId,
+                            SongId = current.Song.SongId
+                        },    // Workaround for play song == null problem
+                    Elapsed = Elapsed,
+                        User = current?.UserId
+                    });
+
+                if (song == null)
+                {
+                    BroadcastNotification(string.Format("Server error: Failed to get song {0}:{1}", current.Song.SiteId, current.Song.SongId), userId);
+                }
+            }
+        }
+
+        private void BroadcastNotification(string message, string userId = null)
+        {
+            SocketManager.SendMessage(userId != null ? new[] { userId } : List.UserList.ToArray(),
+                new NotificationEvent
                 {
                     ChannelId = Id,
-                    Downvote = DownvoteUsers.Contains(userId),
-                    Song = song != null ? song : NextServerSong,    // Workaround for play song == null problem
-                    Elapsed = Elapsed,
-                    User = current?.UserId
+                    Notification = new Notification
+                    {
+                        Message = message,
+                        Timeout = 10000
+                    }
                 });
         }
 
