@@ -89,7 +89,7 @@ namespace Wukong.Services
             }
             catch (Exception ex)
             {
-                Logger.LogError(new EventId(), ex, "Fetch songInfo");
+                Logger.LogError(new EventId(), "An error occurred from GetSong {0} {1}\n" + ex.Message, clientSong.SiteId, clientSong.SongId);
             }
             
             timer.Stop();
