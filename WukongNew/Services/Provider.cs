@@ -79,7 +79,7 @@ namespace Wukong.Services
             var startTime = DateTime.UtcNow;
             var timer = System.Diagnostics.Stopwatch.StartNew();
             Song result = null;
-            int retryCount = 1, currentRetry = 0;
+            int retryCount = 2, currentRetry = 0;
             while (result == null && currentRetry <= retryCount)
             {
                 try
