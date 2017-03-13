@@ -92,7 +92,7 @@ namespace Wukong.Services
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(new EventId(), "An error occurred from GetSong {0} {1} {2}\n" + ex.Message, clientSong.SiteId, clientSong.SongId, currentRetry);
+                    Logger.LogTrace(new EventId(), ex, "An error occurred from GetSong {0} {1} {2}", clientSong.SiteId, clientSong.SongId, currentRetry);
                 }
                 currentRetry++;
             }
