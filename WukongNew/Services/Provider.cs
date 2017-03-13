@@ -79,17 +79,22 @@ namespace Wukong.Services
             var startTime = DateTime.UtcNow;
             var timer = System.Diagnostics.Stopwatch.StartNew();
             Song result = null;
-            try
+            int retryCount = 1, currentRetry = 0;
+            while (result == null && currentRetry <= retryCount)
             {
-                var response = await client.PostAsync("api/songInfo", request, formatter);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    result = await response.Content.ReadAsAsync<Song>();
+                    var response = await client.PostAsync("api/songInfo", request, formatter);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        result = await response.Content.ReadAsAsync<Song>();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(new EventId(), "An error occurred from GetSong {0} {1}\n" + ex.Message, clientSong.SiteId, clientSong.SongId);
+                catch (Exception ex)
+                {
+                    Logger.LogError(new EventId(), "An error occurred from GetSong {0} {1} {2}\n" + ex.Message, clientSong.SiteId, clientSong.SongId, currentRetry);
+                }
+                currentRetry++;
             }
             
             timer.Stop();
