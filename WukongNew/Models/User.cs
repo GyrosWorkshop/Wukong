@@ -12,6 +12,11 @@ namespace Wukong.Models
     public class User
     {
         public static readonly string AvatarKey = "avatar";
+        
+        public static string GetUserIdentifier(string fromSite, string siteUserId)
+        {
+            return fromSite + "." + siteUserId;
+        }
 
         public string UserName { get; private set; }
 
@@ -22,6 +27,8 @@ namespace Wukong.Models
         public string DisplayName { get; private set; }
 
         public string FromSite { get; private set; }
+
+        public string SiteUserId { get; private set; }
 
         public string Url { get; private set; }
 
@@ -89,6 +96,7 @@ namespace Wukong.Models
             Avatar = claims.FindFirst(AvatarKey)?.Value ?? Avatar;
             DisplayName = claims.FindFirst(ClaimTypes.Name)?.Value;
             FromSite = claims.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
+            SiteUserId = claims.FindFirst(ClaimTypes.NameIdentifier).Value;
             Url = claims.FindFirst(ClaimTypes.Uri)?.Value;
         }
 

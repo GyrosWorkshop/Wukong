@@ -24,7 +24,8 @@ namespace Wukong.Controllers
             Provider = provider;
         }
 
-        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
+            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         // GET: /<controller>/
         [HttpPost("{feature}")]

@@ -38,7 +38,8 @@ namespace Wukong.Services
                     return;
                 }
                 var websocket = await ctx.WebSockets.AcceptWebSocketAsync();
-                var userId = ctx.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var userId = Models.User.GetUserIdentifier(ctx.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
+                    ctx.User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 await socketManager.AcceptWebsocket(websocket, userId);
             }
             else

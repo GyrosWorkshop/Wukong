@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -8,7 +7,6 @@ using System.Linq;
 
 using Wukong.Services;
 using Wukong.Models;
-using Wukong.Options;
 using Wukong.Repositories;
 
 namespace Wukong.Controllers
@@ -30,7 +28,8 @@ namespace Wukong.Controllers
             UserService = userService;
         }
 
-        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
+            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()

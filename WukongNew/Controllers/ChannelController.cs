@@ -27,7 +27,8 @@ namespace Wukong.Controllers
             UserService = userService;
         }
 
-        string UserId => HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
+            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         // POST api/channel/join
         [HttpPost("join/{channelId}")]
