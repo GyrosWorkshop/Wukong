@@ -102,6 +102,12 @@ namespace Wukong.Options
                             context.Identity.AddClaim(new Claim(User.AvatarKey, avatar, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                         }
 
+                        var url = user.Value<string>("html_url");
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            context.Identity.AddClaim(new Claim(ClaimTypes.Uri, url, ClaimValueTypes.String, context.Options.ClaimIssuer));
+                        }
+
                         context.Identity.AddClaim(new Claim(ClaimTypes.Authentication, "true", ClaimValueTypes.Boolean, context.Options.ClaimsIssuer));
                         context.Identity.AddClaim(new Claim(ClaimTypes.AuthenticationMethod, context.Options.AuthenticationScheme, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                     }
@@ -113,7 +119,8 @@ namespace Wukong.Options
         {
             return new MicrosoftAccountOptions
             {
-                DisplayName = "Microsoft Account",
+                AuthenticationScheme = "Microsoft",
+                DisplayName = "Microsoft",
                 ClientId = clientId,
                 ClientSecret = clientSecret,
                 CallbackPath = "/oauth-redirect/microsoft",
