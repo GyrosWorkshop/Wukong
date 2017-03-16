@@ -51,7 +51,7 @@ namespace Wukong.Services
 
         public User GetAndUpdateUserWithClaims(ClaimsPrincipal claims)
         {
-            var user = GetOrCreate(claims.FindFirst(ClaimTypes.AuthenticationMethod + "." + ClaimTypes.NameIdentifier)?.Value);
+            var user = GetOrCreate(claims.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             user?.UpdateFromClaims(claims);
             if (user != null)
             {
