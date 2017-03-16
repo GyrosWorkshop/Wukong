@@ -105,7 +105,7 @@ namespace Wukong.Options
                         var url = user.Value<string>("html_url");
                         if (!string.IsNullOrEmpty(url))
                         {
-                            context.Identity.AddClaim(new Claim(ClaimTypes.Uri, url, ClaimValueTypes.String, context.Options.ClaimIssuer));
+                            context.Identity.AddClaim(new Claim(ClaimTypes.Uri, url, ClaimValueTypes.String, context.Options.ClaimsIssuer));
                         }
 
                         context.Identity.AddClaim(new Claim(ClaimTypes.Authentication, "true", ClaimValueTypes.Boolean, context.Options.ClaimsIssuer));
