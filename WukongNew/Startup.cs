@@ -98,11 +98,11 @@ namespace Wukong
             });
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions());
-
-            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Configuration["Authentication:GitHub:ClientId"],
-                Configuration["Authentication:GitHub:ClientSecret"]));
+            
             app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(Configuration["Authentication:Microsoft:ClientId"],
                 Configuration["Authentication:Microsoft:ClientSecret"]));
+            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Configuration["Authentication:GitHub:ClientId"],
+                Configuration["Authentication:GitHub:ClientSecret"]));
             app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Configuration["Authentication:Google:ClientId"],
                 Configuration["Authentication:Google:ClientSecret"]));
 
