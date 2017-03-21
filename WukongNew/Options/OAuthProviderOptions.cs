@@ -15,14 +15,14 @@ namespace Wukong.Options
 {
     public class OAuthProviderOptions
     {
-        public static GoogleOptions GoogleOAuthOptions(string clientId, string clientSecret)
+        public static GoogleOptions GoogleOAuthOptions(Secret secret)
         {
             return new GoogleOptions
             {
                 AuthenticationScheme = "Google",
                 DisplayName = "Google",
-                ClientId = clientId,
-                ClientSecret = clientSecret,
+                ClientId = secret.ClientId,
+                ClientSecret = secret.ClientSecret,
                 CallbackPath = "/oauth-redirect/google",
                 SignInScheme = "Cookies",
                 Events = new OAuthEvents
@@ -55,14 +55,14 @@ namespace Wukong.Options
             };
         }
 
-        public static OAuthOptions GitHubOAuthOptions(string clientId, string clientSecret)
+        public static OAuthOptions GitHubOAuthOptions(Secret secret)
         {
             return new OAuthOptions
             {
                 AuthenticationScheme = "GitHub",
                 DisplayName = "GitHub",
-                ClientId = clientId,
-                ClientSecret = clientSecret,
+                ClientId = secret.ClientId,
+                ClientSecret = secret.ClientSecret,
                 CallbackPath = "/oauth-redirect/github",
                 Scope = { "user:email" },
                 SignInScheme = "Cookies",
@@ -115,14 +115,14 @@ namespace Wukong.Options
             };
         }
 
-        public static MicrosoftAccountOptions MicrosoftOAuthOptions(string clientId, string clientSecret)
+        public static MicrosoftAccountOptions MicrosoftOAuthOptions(Secret secret)
         {
             return new MicrosoftAccountOptions
             {
                 AuthenticationScheme = "Microsoft",
                 DisplayName = "Microsoft",
-                ClientId = clientId,
-                ClientSecret = clientSecret,
+                ClientId = secret.ClientId,
+                ClientSecret = secret.ClientSecret,
                 CallbackPath = "/oauth-redirect/microsoft",
                 SaveTokens = true,
                 Events = new OAuthEvents

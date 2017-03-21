@@ -1,14 +1,13 @@
+using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Microsoft.ApplicationInsights;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Logging;
 using Wukong.Models;
 using Wukong.Options;
 
@@ -29,10 +28,10 @@ namespace Wukong.Services
         private readonly TelemetryClient Telemetry;
         private readonly ILogger Logger;
 
-        public Provider(IOptions<ProviderOption> option, ILoggerFactory loggerFactory)
+        public Provider(IOptions<SettingOptions> option, ILoggerFactory loggerFactory)
         {
             client = new HttpClient();
-            client.BaseAddress = new Uri(option.Value.Url);
+            client.BaseAddress = new Uri(option.Value.Provider.Url);
             formatter = new JsonMediaTypeFormatter();
             formatter.SerializerSettings = new JsonSerializerSettings
             {

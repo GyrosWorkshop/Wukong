@@ -19,7 +19,7 @@ namespace Wukong.Controllers
         private readonly IStorage Storage;
         private readonly IUserService UserService;
 
-        public ChannelController(IOptions<ProviderOption> providerOption, ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage, IUserService userService)
+        public ChannelController(ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage, IUserService userService)
         {
             Logger = loggerFactory.CreateLogger("ChannelController");
             ChannelManager = channelManager;
