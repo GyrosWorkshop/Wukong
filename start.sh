@@ -12,4 +12,6 @@ sed -i "s/\"MICROSOFT_CLIENT_ID\"/\"${MICROSOFT_CLIENT_ID}\"/" appsettings.Produ
 sed -i "s/\"MICROSOFT_CLIENT_SECRET\"/\"${MICROSOFT_CLIENT_SECRET}\"/" appsettings.Production.json
 WUKONG_PROVIDER_ESCAPE=${WUKONG_PROVIDER//\//\\\/}
 sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER_ESCAPE}\"/" appsettings.Production.json
-dotnet run -p WukongNew/Wukong.csproj -c RELEASE
+mv appsettings.Production.json WukongNew/appsettings.Production.json
+cd WukongNew
+dotnet run -c RELEASE
