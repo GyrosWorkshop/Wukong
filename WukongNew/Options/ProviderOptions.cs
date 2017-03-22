@@ -1,6 +1,6 @@
 namespace Wukong.Options
 {
-    public class ProviderOption
+    public class ProviderOptions
     {
         public string Url { get; set; }
     }
