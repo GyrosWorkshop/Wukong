@@ -14,17 +14,15 @@ namespace Wukong.Controllers
     [Route("api/[controller]")]
     public class ChannelController : Controller
     {
-        private readonly ILogger Logger;
-        private readonly IChannelManager ChannelManager;
-        private readonly IStorage Storage;
-        private readonly IUserService UserService;
+        private readonly IChannelManager _channelManager;
+        private readonly IStorage _storage;
+        private readonly IUserService _userService;
 
-        public ChannelController(ILoggerFactory loggerFactory, IChannelManager channelManager, IStorage storage, IUserService userService)
+        public ChannelController(IChannelManager channelManager, IStorage storage, IUserService userService)
         {
-            Logger = loggerFactory.CreateLogger("ChannelController");
-            ChannelManager = channelManager;
-            Storage = storage;
-            UserService = userService;
+            _channelManager = channelManager;
+            _storage = storage;
+            _userService = userService;
         }
 
         string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
@@ -34,14 +32,14 @@ namespace Wukong.Controllers
         [HttpPost("join/{channelId}")]
         public ActionResult Join(string channelId)
         {
-            ChannelManager.JoinAndLeavePreviousChannel(channelId, UserId);
+            _channelManager.JoinAndLeavePreviousChannel(channelId, UserId);
             return NoContent();
         }
 
         [HttpPost("finished")]
         public ActionResult Finished([FromBody] ClientSong song)
         {
-            var success = Storage.GetChannelByUser(UserService.User.Id)?.ReportFinish(UserId, song);
+            var success = _storage.GetChannelByUser(_userService.User.Id)?.ReportFinish(UserId, song);
             if (success == true) return NoContent();
             return BadRequest();
         }
@@ -50,7 +48,7 @@ namespace Wukong.Controllers
         public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
             if (song.IsEmpty()) song = null;
-            var channel = Storage.GetChannelByUser(UserService.User.Id);
+            var channel = _storage.GetChannelByUser(_userService.User.Id);
             channel?.UpdateSong(UserId, song);
             return NoContent();
         }
@@ -59,7 +57,7 @@ namespace Wukong.Controllers
         public ActionResult DownVote([FromBody] ClientSong song)
         {
             // FIXME: test whether user joined this channel.
-            var channel = Storage.GetChannelByUser(UserService.User.Id);
+            var channel = _storage.GetChannelByUser(_userService.User.Id);
             var success = channel?.ReportFinish(UserId, song, true);
             if (success == true) return NoContent();
             return BadRequest();

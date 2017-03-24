@@ -12,22 +12,16 @@ namespace Wukong.Controllers
     {
 
         [HttpGet("all")]
-        public List<OAuthMethod> AllSchemes()
+        public IEnumerable<OAuthMethod> AllSchemes()
         {
-            var methods = new List<OAuthMethod>();
-            foreach (var type in HttpContext.Authentication.GetAuthenticationSchemes())
-            {
-                if (type.DisplayName != null)
+            return HttpContext.Authentication.GetAuthenticationSchemes()
+                .Where(it => it.DisplayName != null)
+                .Select(type => new OAuthMethod()
                 {
-                    methods.Add(new OAuthMethod
-                    {
-                        Scheme = type.AuthenticationScheme,
-                        DisplayName = type.DisplayName,
-                        Url = "/oauth/go/" + type.AuthenticationScheme
-                    });
-                }
-            }
-            return methods;
+                    Scheme = type.AuthenticationScheme,
+                    DisplayName = type.DisplayName,
+                    Url = $"/oauth/go/{type.AuthenticationScheme}"
+                });
         }
 
         [HttpGet("go/{oAuthProvider}")]

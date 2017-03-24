@@ -15,26 +15,21 @@ namespace Wukong.Controllers
     [Route("api/user")]
     public class UserController : Controller
     {
-        private readonly IProvider Provider;
-        private readonly IUserSongListRepository UserSongListRepository;
-        private readonly IStorage Storage;
-        private readonly IUserService UserService;
+        private readonly IProvider _provider;
+        private readonly IUserSongListRepository _userSongListRepository;
+        private readonly IUserService _userService;
 
-        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IStorage storage, IUserService userService)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IUserService userService)
         {
-            UserSongListRepository = userSongListRepository;
-            Storage = storage;
-            Provider = provider;
-            UserService = userService;
+            _userSongListRepository = userSongListRepository;
+            _provider = provider;
+            _userService = userService;
         }
-
-        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
-            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         [HttpGet("userinfo")]
         public IActionResult GetUserinfo()
         {
-            return new ObjectResult(UserService.User);
+            return new ObjectResult(_userService.User);
         }
 
         [HttpPost("songList/{id}")]
@@ -43,7 +38,7 @@ namespace Wukong.Controllers
             // We need to remove duplicate songs in the song list.
             var songList = new HashSet<ClientSong>(info.Song);
             info.Song = new List<ClientSong>(songList);
-            if (await UserSongListRepository.UpdateAsync(UserId, id, info))
+            if (await _userSongListRepository.UpdateAsync(_userService.User.Id, id, info))
             {
                 return new ObjectResult(new CreateOrUpdateSongListResponse
                 {
@@ -63,7 +58,7 @@ namespace Wukong.Controllers
             // We need to remove duplicate songs in the song list.
             var songList = new HashSet<ClientSong>(info.Song);
             info.Song = new List<ClientSong>(songList);
-            var id = await UserSongListRepository.AddAsync(UserId, info);
+            var id = await _userSongListRepository.AddAsync(_userService.User.Id, info);
             return new ObjectResult(new CreateOrUpdateSongListResponse
             {
                 Id = id
@@ -73,12 +68,12 @@ namespace Wukong.Controllers
         [HttpGet("songList/{id}")]
         public async Task<IActionResult> SongListAsyc(long id)
         {
-            var clientSongList = await UserSongListRepository.GetAsync(UserId, id);
+            var clientSongList = await _userSongListRepository.GetAsync(_userService.User.Id, id);
             if (clientSongList == null)
             {
                 return new NotFoundResult();
             }
-            var songFetchTasks = clientSongList?.Song.Select(s => Provider.GetSong(s)).ToArray();
+            var songFetchTasks = clientSongList?.Song.Select(s => _provider.GetSong(s)).ToArray();
             Task.WaitAll(songFetchTasks.ToArray());
             var songs = songFetchTasks.Where(t => t.Result != null).Select(t => t.Result).ToList();
             var songList = new SongList
@@ -92,7 +87,7 @@ namespace Wukong.Controllers
         [HttpGet("songList")]
         public async Task<IActionResult> SongListAsyc()
         {
-            var songList = await UserSongListRepository.ListAsync(UserId);
+            var songList = await _userSongListRepository.ListAsync(_userService.User.Id);
             if (songList == null) return new ObjectResult(new string[0]);
             var result = songList.Select(it => new
             {

@@ -18,28 +18,18 @@ namespace Wukong.Controllers
     public class ProviderController : Controller
     {
 
-        private readonly IProvider Provider;
+        private readonly IProvider _provider;
         public ProviderController(IProvider provider)
         {
-            Provider = provider;
+            _provider = provider;
         }
-
-        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
-            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         // GET: /<controller>/
         [HttpPost("{feature}")]
         public async Task<IActionResult> Index(string feature, [FromBody] JObject body)
         {
-            var result = await Provider.ApiProxy(feature, body);
-            if (result != null)
-            {
-                return new ObjectResult(result);
-            }
-            else
-            {
-                return StatusCode(500, "ApiProxy null (feature not exists?)");
-            }
+            var result = await _provider.ApiProxy(feature, body);
+            return result != null ? new ObjectResult(result) : StatusCode(500, "ApiProxy null (feature not exists?)");
         }
     }
 }
