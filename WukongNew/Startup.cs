@@ -53,15 +53,16 @@ namespace Wukong
             // Dependency injection
             services.AddScoped<IUserSongListRepository, UserSongListRepository>();
 
+            services.Configure<SettingOptions>(Configuration);
+            Configuration.Bind(Settings);
+
             services.AddSingleton<ISocketManager, SocketManager>();
             services.AddSingleton<IProvider, Provider>();
             services.AddSingleton<IChannelManager, ChannelManager>();
             services.AddSingleton<IStorage, Storage>();
             services.AddSingleton<IUserManager, UserManager>();
             services.AddScoped<IUserService, UserService>();
-            services.Configure<SettingOptions>(Configuration);
-
-            Configuration.Bind(Settings);
+            
 
             services.AddAuthentication(options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -85,8 +86,6 @@ namespace Wukong
             loggerFactory.AddDebug();
 
             app.UseSession();
-            app.UseApplicationInsightsRequestTelemetry();
-            app.UseApplicationInsightsExceptionTelemetry();
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
