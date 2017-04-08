@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:1.1.1-runtime
+FROM microsoft/dotnet:1.1.1-runtime-deps
 LABEL maintainer="Senorsen <senorsen.zhang@gmail.com>"
 WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
