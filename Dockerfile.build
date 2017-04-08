@@ -6,7 +6,7 @@ COPY Wukong.sln .
 COPY WukongNew ./WukongNew
 RUN dotnet restore
 # Publish to /dotnetapp/wukong-dist
-RUN dotnet publish -c Release -o ../wukong-dist -r debian.8-x64
+RUN dotnet publish -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64
 
 COPY appsettings.template.json .
 
