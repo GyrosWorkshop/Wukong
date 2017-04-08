@@ -2,13 +2,13 @@ FROM microsoft/dotnet:1.1.1-sdk
 WORKDIR /dotnetapp
 
 RUN mkdir -p /dotnetapp
-COPY Wukong.sln /dotnetapp/
-COPY WukongNew /dotnetapp/WukongNew/
+COPY Wukong.sln .
+COPY WukongNew ./WukongNew
 RUN dotnet restore
-# Publish to /dotnetapp/dist
-RUN dotnet publish -c Release -o ../dist -r debian.8-x64
+# Publish to /dotnetapp/wukong-dist
+RUN dotnet publish -c Release -o ../wukong-dist -r debian.8-x64
 
-COPY appsettings.template.json /dotnetapp/
+COPY appsettings.template.json .
 
 COPY start.sh /
 RUN chmod +x /start.sh
