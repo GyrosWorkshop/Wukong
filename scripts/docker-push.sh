@@ -12,5 +12,5 @@ else
     fi
 fi
 docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-docker build -t "senorsen/wukong:$DOCKER_TAG" . -f Dockerfile
-docker push "senorsen/wukong:$DOCKER_TAG"
+docker build -t "gyrosworkshop/wukong:$DOCKER_TAG" . -f Dockerfile
+docker push "gyrosworkshop/wukong:$DOCKER_TAG"
