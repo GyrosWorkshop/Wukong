@@ -8,13 +8,7 @@ script:
 - docker run --name wukong-build wukong-build ls
 - docker cp wukong-build:/dotnetapp/wukong-dist_linux-x64 .
 after_success:
-- if [ -n "$TRAVIS_TAG" ] && [[ "$TRAVIS_TAG" = v* ]];
-  then DOCKER_TAG="${TRAVIS_TAG#*v}"
-  else if [ -n "$TRAVIS_BRANCH" ]; then if [ "$TRAVIS_BRANCH" = "master" ]; then DOCKER_TAG=latest
-  else exit fi fi fi
-  docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-  docker build -t "senorsen/wukong:$DOCKER_TAG" . -f Dockerfile
-  docker push "senorsen/wukong:$DOCKER_TAG";
+- bash scripts/docker-push.sh
 before_deploy: tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 deploy:
   provider: releases
