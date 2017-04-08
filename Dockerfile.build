@@ -4,8 +4,9 @@ WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
 COPY Wukong.sln /dotnetapp/
 COPY WukongNew /dotnetapp/WukongNew/
-RUN dotnet restore -m
-RUN dotnet build -m
+RUN dotnet restore
+# Publish to /dotnetapp/dist
+RUN dotnet publish -c Release -o ../dist -r debian.8-x64
 
 COPY appsettings.template.json /dotnetapp/
 
