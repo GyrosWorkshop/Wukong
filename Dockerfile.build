@@ -3,9 +3,9 @@ WORKDIR /dotnetapp
 
 RUN mkdir -p /dotnetapp
 COPY Wukong.sln .
-COPY WukongNew ./WukongNew
+COPY Wukong ./Wukong
 RUN dotnet restore
-# Publish to /dotnetapp/wukong-dist
+# Publish linux version.
 RUN dotnet publish -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64
 
 COPY appsettings.template.json .
