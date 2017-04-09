@@ -14,4 +14,5 @@ COPY start.sh /
 RUN chmod +x /start.sh
 
 EXPOSE 5000
-CMD ["/start.sh"]
+ENTRYPOINT ["/start.sh"]
+CMD ["./wukong-dist_linux-x64/Wukong"]

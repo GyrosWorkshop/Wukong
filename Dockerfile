@@ -10,4 +10,5 @@ RUN chmod +x /start.sh
 COPY appsettings.template.json .
 
 EXPOSE 5000
-CMD ["/start.sh"]
+ENTRYPOINT ["/start.sh"]
+CMD ["./wukong-dist_linux-x64/Wukong"]
