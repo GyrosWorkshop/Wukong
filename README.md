@@ -2,8 +2,9 @@
 A Wukong backend written in C#.
 
 [![Build Status](https://travis-ci.org/GyrosWorkshop/Wukong.svg?branch=master)](https://travis-ci.org/GyrosWorkshop/Wukong)
-
 [![](https://images.microbadger.com/badges/image/gyrosworkshop/wukong.svg)](https://microbadger.com/images/gyrosworkshop/wukong "Get your own image badge on microbadger.com")
++[![Code Climate](https://codeclimate.com/github/GyrosWorkshop/Wukong.png)](https://codeclimate.com/github/GyrosWorkshop/Wukong)
+
 
 # Authentication
 
