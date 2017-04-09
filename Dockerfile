@@ -4,11 +4,11 @@ WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
 
 COPY wukong-dist_linux-x64 ./wukong-dist_linux-x64
-
-COPY start.sh /
-RUN chmod +x /start.sh
 COPY appsettings.template.json .
 
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
+ENTRYPOINT ["docker-entrypoint.sh"]
+
 EXPOSE 5000
-ENTRYPOINT ["/start.sh"]
 CMD ["./wukong-dist_linux-x64/Wukong"]
