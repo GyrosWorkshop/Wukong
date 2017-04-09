@@ -52,6 +52,7 @@ namespace Wukong
 
             // Dependency injection
             services.AddScoped<IUserSongListRepository, UserSongListRepository>();
+            services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
 
             services.Configure<SettingOptions>(Configuration);
             Configuration.Bind(Settings);
@@ -73,7 +74,7 @@ namespace Wukong
                 });
             services.AddDistributedMemoryCache();
             services.AddSession();
-            services.AddDbContext<UserSongListContext>(options =>
+            services.AddDbContext<UserDbContext>(options =>
             {
                 options.UseSqlite(Settings.SqliteConnectionString);
             });
@@ -82,6 +83,12 @@ namespace Wukong
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetRequiredService<UserDbContext>();
+                context.Database.Migrate();
+            }
+
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 

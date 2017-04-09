@@ -19,9 +19,9 @@ namespace Wukong.Repositories
 
     public class UserSongListRepository : IUserSongListRepository
     {
-        private readonly UserSongListContext context;
+        private readonly UserDbContext context;
 
-        public UserSongListRepository(UserSongListContext context)
+        public UserSongListRepository(UserDbContext context)
         {
             this.context = context;
         }

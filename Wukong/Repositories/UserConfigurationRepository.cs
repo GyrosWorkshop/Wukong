@@ -4,17 +4,17 @@ using Wukong.Models;
 
 namespace Wukong.Repositories
 {
-    public interface IUserConfigurationRespository
+    public interface IUserConfigurationRepository
     {
         Task<UserConfigurationData> GetAsync(string userId);
         Task AddOrUpdateAsync(string userId, string syncPlaylists, string cookies);
     }
 
-    public class UserConfigurationRepository
+    public class UserConfigurationRepository: IUserConfigurationRepository
     {
-        private readonly UserConfigurationContext context;
+        private readonly UserDbContext context;
 
-        public UserConfigurationRepository(UserConfigurationContext context)
+        public UserConfigurationRepository(UserDbContext context)
         {
             this.context = context;
         }
