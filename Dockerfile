@@ -10,5 +10,6 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+VOLUME /dotnetapp/wukong-dist_linux-x64/wukong.db
 EXPOSE 5000
 CMD ["./wukong-dist_linux-x64/Wukong"]
