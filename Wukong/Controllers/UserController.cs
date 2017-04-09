@@ -100,10 +100,20 @@ namespace Wukong.Controllers
         }
 
         [HttpGet("configuration")]
-        public async Task<IActionResult> getConfiguration()
+        public async Task<IActionResult> GetConfiguration()
         {
             var configuration = await _userConfigurationRespository.GetAsync(_userService.User.Id);
             return new ObjectResult(configuration);
+        }
+
+        [HttpPost("configuration")]
+        public async Task<IActionResult> SaveConfiguration([FromBody] UserConfigurationData configuration)
+        {
+            await _userConfigurationRespository.AddOrUpdateAsync(
+                _userService.User.Id,
+                configuration.SyncPlaylists,
+                configuration.Cookies);
+            return new OkResult();
         }
     }
 
