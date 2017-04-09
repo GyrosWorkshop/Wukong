@@ -17,10 +17,10 @@ namespace Wukong.Controllers
     {
         private readonly IProvider _provider;
         private readonly IUserSongListRepository _userSongListRepository;
-        private readonly IUserConfigurationRespository _userConfigurationRespository;
+        private readonly IUserConfigurationRepository _userConfigurationRespository;
         private readonly IUserService _userService;
 
-        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IUserConfigurationRespository userConfigurationRespository, IUserService userService)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IUserConfigurationRepository userConfigurationRespository, IUserService userService)
         {
             _userSongListRepository = userSongListRepository;
             _userConfigurationRespository = userConfigurationRespository;
