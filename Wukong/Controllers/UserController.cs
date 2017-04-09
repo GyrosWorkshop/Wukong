@@ -17,11 +17,13 @@ namespace Wukong.Controllers
     {
         private readonly IProvider _provider;
         private readonly IUserSongListRepository _userSongListRepository;
+        private readonly IUserConfigurationRespository _userConfigurationRespository;
         private readonly IUserService _userService;
 
-        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IUserService userService)
+        public UserController(IProvider provider, IUserSongListRepository userSongListRepository, IUserConfigurationRespository userConfigurationRespository, IUserService userService)
         {
             _userSongListRepository = userSongListRepository;
+            _userConfigurationRespository = userConfigurationRespository;
             _provider = provider;
             _userService = userService;
         }
@@ -95,6 +97,13 @@ namespace Wukong.Controllers
                 Name = it.Name
             }).ToList();
             return new ObjectResult(result);
+        }
+
+        [HttpGet("configuration")]
+        public async Task<IActionResult> getConfiguration()
+        {
+            var configuration = await _userConfigurationRespository.GetAsync(_userService.User.Id);
+            return new ObjectResult(configuration);
         }
     }
 
