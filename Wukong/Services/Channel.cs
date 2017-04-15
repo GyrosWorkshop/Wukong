@@ -55,7 +55,6 @@ namespace Wukong.Services
     {
         private static readonly object UserListLock = new object();
 
-
         public delegate void UserListChangedHandler(bool add, string userId);
 
         public event UserListChangedHandler UserChanged;
@@ -72,7 +71,7 @@ namespace Wukong.Services
         private LinkedListNode<UserSong> _current;
         private LinkedListNode<UserSong> Current
         {
-            get { return _current; }
+            get => _current;
             set
             {
                 _current = value;
@@ -99,7 +98,7 @@ namespace Wukong.Services
         private void CurrentPlayingChanged()
         {
             CurrentPlaying = Current?.Value?.Clone();
-            CurrentChanged?.Invoke(CurrentPlaying?.Clone());
+            CurrentChanged?.Invoke(CurrentPlaying);
             RefreshNextSong();
         }
 
