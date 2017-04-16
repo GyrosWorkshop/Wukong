@@ -3,24 +3,32 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Redis;
 using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Wukong.Store
 {
     public class RedisCacheTicketStore : ITicketStore
     {
-        private readonly IDistributedCache _cache;
+        private IDistributedCache _cache;
 
         private const string KeyPrefix = "AuthSessionStore";
 
         public RedisCacheTicketStore(string RedisConnection)
         {
+            InitRedisConnectionAsync(RedisConnection);
+        }
+
+        async private void InitRedisConnectionAsync(string RedisConnection)
+        {
+            var ipAddress = (await Dns.GetHostAddressesAsync(RedisConnection.Split(':')[0]))[0];
+            var resolvedRedisConnection = ipAddress + (RedisConnection.Split(':').Length == 2 ? ":" + RedisConnection.Split(':')[1] : "");
+
             _cache = new RedisCache(new RedisCacheOptions
             {
-                Configuration = RedisConnection,
+                Configuration = resolvedRedisConnection,
                 InstanceName = "master"
             });
-
         }
 
         public Task<string> StoreAsync(AuthenticationTicket ticket)
