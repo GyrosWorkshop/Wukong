@@ -21,7 +21,8 @@ namespace Wukong.Store
 
         async private void InitRedisConnectionAsync(string RedisConnection)
         {
-            var ipAddress = (await Dns.GetHostAddressesAsync(RedisConnection.Split(':')[0]))[0];
+            var host = RedisConnection.Split(':')[0];
+            var ipAddress = host == "localhost" ? "localhost" : (await Dns.GetHostAddressesAsync(host))[0].ToString();
             var resolvedRedisConnection = ipAddress + (RedisConnection.Split(':').Length == 2 ? ":" + RedisConnection.Split(':')[1] : "");
 
             _cache = new RedisCache(new RedisCacheOptions
