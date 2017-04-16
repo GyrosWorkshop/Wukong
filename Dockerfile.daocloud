@@ -1,0 +1,15 @@
+FROM microsoft/dotnet:1.1.1-runtime-deps
+LABEL maintainer="Senorsen <senorsen.zhang@gmail.com>"
+WORKDIR /dotnetapp
+RUN mkdir -p /dotnetapp
+
+ADD wukong-dist_linux-x64.tar.gz ./wukong-dist_linux-x64
+COPY appsettings.template.json .
+
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
+ENTRYPOINT ["docker-entrypoint.sh"]
+RUN mkdir -p /dotnetapp/wukong-dist_linux-x64/database
+VOLUME /dotnetapp/wukong-dist_linux-x64/database
+EXPOSE 5000
+CMD ["./wukong-dist_linux-x64/Wukong"]
