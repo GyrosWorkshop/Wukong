@@ -3,7 +3,7 @@ LABEL maintainer="Senorsen <senorsen.zhang@gmail.com>"
 WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
 
-ADD wukong-dist_linux-x64.tar.gz ./wukong-dist_linux-x64
+ADD wukong-dist_linux-x64.tar.gz ./wukong-dist_linux-x64/
 COPY appsettings.template.json .
 
 COPY docker-entrypoint.sh /usr/local/bin/
