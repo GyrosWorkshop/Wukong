@@ -13,4 +13,7 @@ sed -i "s/\"MICROSOFT_CLIENT_SECRET\"/\"${MICROSOFT_CLIENT_SECRET}\"/" appsettin
 WUKONG_PROVIDER_ESCAPE=${WUKONG_PROVIDER//\//\\\/}
 sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER_ESCAPE}\"/" appsettings.Production.json
 
+# Omitted if empty.
+sed -i "s/\"RedisConnectionString\": null/\"RedisConnectionString\": \"${REDIS_CONNECTION}\"/" appsettings.Production.json
+
 exec ./wukong-dist_linux-x64/Wukong

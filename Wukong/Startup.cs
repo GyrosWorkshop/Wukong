@@ -72,6 +72,7 @@ namespace Wukong
                 {
                     opt.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 });
+            
             services.AddDistributedMemoryCache();
             services.AddSession();
             services.AddDbContext<UserDbContext>(options =>
@@ -98,8 +99,10 @@ namespace Wukong
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
             });
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions());
-            
+
+            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(Settings.RedisConnectionString));
+
+
             app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(Settings.Authentication.Microsoft));
             app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Settings.Authentication.GitHub));
             app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Settings.Authentication.Google));

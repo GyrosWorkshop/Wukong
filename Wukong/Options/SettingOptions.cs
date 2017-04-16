@@ -7,5 +7,6 @@
         public ProviderOptions Provider { get; set; }
 
         public string SqliteConnectionString { get; set; }
+        public string RedisConnectionString { get; set; }
     }
 }
