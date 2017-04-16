@@ -14,3 +14,5 @@ fi
 docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 docker build -t "gyrosworkshop/wukong:$DOCKER_TAG" . -f Dockerfile
 docker push "gyrosworkshop/wukong:$DOCKER_TAG"
+docker tag wukong-build "gyrosworkshop/wukong:$DOCKER_TAG-build"
+docker push "gyrosworkshop/wukong:$DOCKER_TAG-build"
