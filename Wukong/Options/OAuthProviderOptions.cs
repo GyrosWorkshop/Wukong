@@ -27,6 +27,14 @@ namespace Wukong.Options
                 SignInScheme = "Cookies",
                 Events = new OAuthEvents
                 {
+                    OnTicketReceived = context =>
+                    {
+                        // Cookie expire
+                        context.Properties.IsPersistent = true;
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+
+                        return Task.FromResult(0);
+                    },
                     OnCreatingTicket = (context) =>
                     {
                         var user = context.User;
@@ -72,6 +80,14 @@ namespace Wukong.Options
                 SaveTokens = true,
                 Events = new OAuthEvents
                 {
+                    OnTicketReceived = context =>
+                    {
+                        // Cookie expire
+                        context.Properties.IsPersistent = true;
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+
+                        return Task.FromResult(0);
+                    },
                     OnCreatingTicket = async context =>
                     {
                         // Get the GitHub user
@@ -127,6 +143,14 @@ namespace Wukong.Options
                 SaveTokens = true,
                 Events = new OAuthEvents
                 {
+                    OnTicketReceived = context =>
+                    {
+                        // Cookie expire
+                        context.Properties.IsPersistent = true;
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+
+                        return Task.FromResult(0);
+                    },
                     OnCreatingTicket = context =>
                     {
                         var user = context.User;
