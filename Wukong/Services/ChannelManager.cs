@@ -30,12 +30,13 @@ namespace Wukong.Services
             UserManager.UserTimeout += UserTimeout;
         }
 
-        public void JoinAndLeavePreviousChannel(string channelId, string userId)
+        public void JoinAndLeavePreviousChannel(string channelId, User user)
         {
-            if (channelId == Storage.GetChannelByUser(userId)?.Id) return;
-            Leave(userId);
+            if (channelId == Storage.GetChannelByUser(user.Id)?.Id) return;
+            Leave(user.Id);
             var channel = Storage.GetOrCreateChannel(channelId, SocketManager, Provider, UserManager);
-            channel.Join(userId);
+            channel.Join(user.Id);
+            user.Join();
         }
 
         public void Leave(string userId)
