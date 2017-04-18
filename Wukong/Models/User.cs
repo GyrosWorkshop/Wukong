@@ -70,10 +70,10 @@ namespace Wukong.Models
                 .OnEntry(() => UserTimeout?.Invoke(this));
         }
 
-        public User(string userId, string site) : this()
+        public User(string site, string userId) : this()
         {
-            OauthId = userId;
             Site = site;
+            OauthId = userId;
         }
 
         public void Connect()
