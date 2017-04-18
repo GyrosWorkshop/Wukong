@@ -29,7 +29,7 @@ namespace Wukong.Controllers
         [HttpPost("join/{channelId}")]
         public ActionResult Join(string channelId)
         {
-            _channelManager.JoinAndLeavePreviousChannel(channelId, _userService.User.Id);
+            _channelManager.JoinAndLeavePreviousChannel(channelId, _userService.User);
             return NoContent();
         }
 

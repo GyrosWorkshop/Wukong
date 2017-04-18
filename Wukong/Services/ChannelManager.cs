@@ -8,7 +8,7 @@ namespace Wukong.Services
 {
     public interface IChannelManager
     {
-        void JoinAndLeavePreviousChannel(string channelId, string userId);
+        void JoinAndLeavePreviousChannel(string channelId, User user);
         void Leave(string userId);
     }
     public class ChannelManager : IChannelManager
