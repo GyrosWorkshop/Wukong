@@ -16,6 +16,9 @@ namespace Wukong
 {
     public class Startup
     {
+        private IConfigurationRoot Configuration { get; }
+        private readonly SettingOptions Settings = new SettingOptions();
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -34,11 +37,14 @@ namespace Wukong
             }
 
             builder.AddEnvironmentVariables();
+            if (env.IsDevelopment())
+            {
+                builder.AddApplicationInsightsSettings(developerMode: true);
+            }
             Configuration = builder.Build();
         }
 
-        public IConfigurationRoot Configuration { get; }
-        private SettingOptions Settings = new SettingOptions();
+
 
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
