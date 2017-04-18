@@ -12,7 +12,7 @@ namespace Wukong.Options
         static public CookieAuthenticationOptions CookieAuthenticationOptions(string RedisConnection)
         {
             ITicketStore ticketStore;
-            if (RedisConnection != "")
+            if (!String.IsNullOrEmpty(RedisConnection))
             {
                 ticketStore = new RedisCacheTicketStore(RedisConnection);
             }

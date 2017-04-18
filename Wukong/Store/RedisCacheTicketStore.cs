@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Redis;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using Wukong.Utilities;
 
 namespace Wukong.Store
 {
@@ -14,16 +15,14 @@ namespace Wukong.Store
 
         private const string KeyPrefix = "AuthSessionStore";
 
-        public RedisCacheTicketStore(string RedisConnection)
+        public RedisCacheTicketStore(string RedisConnectionString)
         {
-            InitRedisConnectionAsync(RedisConnection);
+            InitRedisConnectionAsync(RedisConnectionString);
         }
 
-        async private void InitRedisConnectionAsync(string RedisConnection)
+        private void InitRedisConnectionAsync(string RedisConnectionString)
         {
-            var host = RedisConnection.Split(':')[0];
-            var ipAddress = host == "localhost" ? "localhost" : (await Dns.GetHostAddressesAsync(host))[0].ToString();
-            var resolvedRedisConnection = ipAddress + (RedisConnection.Split(':').Length == 2 ? ":" + RedisConnection.Split(':')[1] : "");
+            var resolvedRedisConnection = RedisConnection.GetConnectionString(RedisConnectionString);
 
             _cache = new RedisCache(new RedisCacheOptions
             {
