@@ -11,7 +11,7 @@ namespace Wukong.Models
     public class User
     {
         public static readonly string AvatarKey = "avatar";
-        
+
         public static string BuildUserIdentifier(string fromSite, string siteUserId)
         {
             return fromSite + "." + siteUserId;
@@ -50,22 +50,27 @@ namespace Wukong.Models
         {
             _userStateMachine.Configure(UserState.Created)
                 .Permit(UserTrigger.Connect, UserState.Connected)
-                .Permit(UserTrigger.Join, UserState.Joined);
+                .Permit(UserTrigger.Join, UserState.Joined)
+                .Ignore(UserTrigger.Timeout)
+                .Ignore(UserTrigger.Disconnect);
 
             _userStateMachine.Configure(UserState.Connected)
                 .Permit(UserTrigger.Join, UserState.Playing)
-                .Permit(UserTrigger.Disconnect, UserState.Timeout)
+                .Permit(UserTrigger.Disconnect, UserState.Created)
+                .Permit(UserTrigger.Timeout, UserState.Timeout)
                 .Ignore(UserTrigger.Connect);
 
             _userStateMachine.Configure(UserState.Joined)
                 .OnEntry(StartDisconnectTimer)
                 .Permit(UserTrigger.Connect, UserState.Playing)
-                .Permit(UserTrigger.Timeout, UserState.Created)
-                .Ignore(UserTrigger.Join);
+                .Permit(UserTrigger.Timeout, UserState.Timeout)
+                .Ignore(UserTrigger.Join)
+                .Ignore(UserTrigger.Disconnect);
 
             _userStateMachine.Configure(UserState.Playing)
                 .Permit(UserTrigger.Disconnect, UserState.Joined)
                 .Ignore(UserTrigger.Join)
+                .Ignore(UserTrigger.Timeout)
                 .Ignore(UserTrigger.Connect);
 
             _userStateMachine.Configure(UserState.Timeout)
