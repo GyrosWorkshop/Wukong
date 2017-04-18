@@ -111,16 +111,6 @@ namespace Wukong.Services
                     {
                         case WebSocketMessageType.Close:
                             throw new Exception("socket closed");
-                        case WebSocketMessageType.Text:
-                        case WebSocketMessageType.Binary:
-                            if (Encoding.UTF8.GetString(buffer.ToArray(), 0, received.Count).StartsWith("ping "))
-                            {
-                                await socket.SendAsync(new ArraySegment<byte>(Encoding.UTF8.GetBytes("pong " + DateTime.Now.ToString())), WebSocketMessageType.Text, true, CancellationToken.None);
-                            } else
-                            {
-                                Logger.LogError($"user: {userId} send message, dropped.");
-                            }
-                            break;
                     }
                 }
             }
