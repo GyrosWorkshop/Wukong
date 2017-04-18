@@ -47,28 +47,23 @@ namespace Wukong.Models
         {
             _userStateMachine.Configure(UserState.Created)
                 .Permit(UserTrigger.Connect, UserState.Connected)
-                .Permit(UserTrigger.Join, UserState.Joined)
-                .Ignore(UserTrigger.Timeout)
-                .Ignore(UserTrigger.Disconnect);
+                .Permit(UserTrigger.Join, UserState.Joined);
 
             _userStateMachine.Configure(UserState.Connected)
                 .Permit(UserTrigger.Join, UserState.Playing)
-                .Permit(UserTrigger.Disconnect, UserState.Created)
-                .Permit(UserTrigger.Timeout, UserState.Timeout)
+                .Permit(UserTrigger.Disconnect, UserState.Timeout)
                 .Ignore(UserTrigger.Connect);
 
             _userStateMachine.Configure(UserState.Joined)
                 .OnEntry(StartDisconnectTimer)
                 .Permit(UserTrigger.Connect, UserState.Playing)
-                .Permit(UserTrigger.Timeout, UserState.Timeout)
-                .Ignore(UserTrigger.Join)
-                .Ignore(UserTrigger.Disconnect);
+                .Permit(UserTrigger.Timeout, UserState.Created)
+                .Ignore(UserTrigger.Join);
 
             _userStateMachine.Configure(UserState.Playing)
-                .Permit(UserTrigger.Disconnect, UserState.Joined)
+                .Permit(UserTrigger.Disconnect, UserState.Timeout)
                 .Ignore(UserTrigger.Join)
-                .Ignore(UserTrigger.Connect)
-                .Ignore(UserTrigger.Timeout);
+                .Ignore(UserTrigger.Connect);
 
             _userStateMachine.Configure(UserState.Timeout)
                 .SubstateOf(UserState.Created)
