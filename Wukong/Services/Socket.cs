@@ -61,7 +61,6 @@ namespace Wukong.Services
             _userManager = userManager;
         }
 
-        private readonly Dictionary<string, Timer> disconnectTimer = new Dictionary<string, Timer>();
         private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId)
