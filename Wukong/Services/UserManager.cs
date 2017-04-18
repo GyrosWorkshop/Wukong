@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Wukong.Models;
 
 namespace Wukong.Services
@@ -44,10 +45,16 @@ namespace Wukong.Services
     public class UserManager : IUserManager
     {
         private readonly ConcurrentDictionary<string, User> _userMap = new ConcurrentDictionary<string, User>();
+        private readonly ILoggerFactory LoggerFactory;
 
         public event UserStateDelegate UserConnected;
         public event UserStateDelegate UserDisconnected;
         public event UserStateDelegate UserTimeout;
+
+        public UserManager(ILoggerFactory loggerFactory)
+        {
+            LoggerFactory = loggerFactory;
+        }
 
         public User GetAndUpdateUserWithClaims(ClaimsPrincipal claims)
         {
@@ -72,7 +79,7 @@ namespace Wukong.Services
         private User GetOrCreate(string fromSite, string siteUserId)
         {
             var id = User.BuildUserIdentifier(fromSite, siteUserId);
-            return siteUserId == null ? null : _userMap.GetOrAdd(id, _ => new User(fromSite, siteUserId));
+            return siteUserId == null ? null : _userMap.GetOrAdd(id, _ => new User(fromSite, siteUserId, LoggerFactory));
         }
 
         public User GetUser(string userId)

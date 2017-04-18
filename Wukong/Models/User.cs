@@ -1,6 +1,7 @@
 using Stateless;
 using System.Security.Claims;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 using Wukong.Services;
 using static System.Threading.Timeout;
 
@@ -39,6 +40,8 @@ namespace Wukong.Models
 
         private Timer _disconnectTimer;
 
+        private readonly ILogger Logger;
+
         public event UserStateDelegate UserConnected;
         public event UserStateDelegate UserDisconnected;
         public event UserStateDelegate UserTimeout;
@@ -61,7 +64,7 @@ namespace Wukong.Models
                 .Ignore(UserTrigger.Join);
 
             _userStateMachine.Configure(UserState.Playing)
-                .Permit(UserTrigger.Disconnect, UserState.Timeout)
+                .Permit(UserTrigger.Disconnect, UserState.Joined)
                 .Ignore(UserTrigger.Join)
                 .Ignore(UserTrigger.Connect);
 
@@ -70,26 +73,30 @@ namespace Wukong.Models
                 .OnEntry(() => UserTimeout?.Invoke(this));
         }
 
-        public User(string site, string userId) : this()
+        public User(string site, string userId, ILoggerFactory loggerFactory) : this()
         {
             Site = site;
             OauthId = userId;
+            Logger = loggerFactory.CreateLogger($"User {Id}");
         }
 
         public void Connect()
         {
+            Logger.LogDebug("Connect");
             _userStateMachine.Fire(UserTrigger.Connect);
             UserConnected?.Invoke(this);
         }
 
         public void Disconnect()
         {
+            Logger.LogDebug("Disconnect");
             _userStateMachine.Fire(UserTrigger.Disconnect);
             UserDisconnected?.Invoke(this);
         }
 
         public void Join()
         {
+            Logger.LogDebug("Join");
             _userStateMachine.Fire(UserTrigger.Join);
         }
 
@@ -105,6 +112,7 @@ namespace Wukong.Models
 
         private void StartDisconnectTimer()
         {
+            Logger.LogDebug("StartDisconnectTimer");
             _disconnectTimer?.Change(Infinite, Infinite);
             _disconnectTimer?.Dispose();
             _disconnectTimer = new Timer(Timeout, null, 15 * 1000, Infinite);
@@ -112,6 +120,7 @@ namespace Wukong.Models
 
         private void Timeout(object ignored)
         {
+            Logger.LogDebug("Timeout");
             _userStateMachine.Fire(UserTrigger.Timeout);
         }
 
