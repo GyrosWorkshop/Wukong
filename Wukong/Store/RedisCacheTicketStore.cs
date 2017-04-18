@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Redis;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using Wukong.Utilities;
 
@@ -16,11 +15,6 @@ namespace Wukong.Store
         private const string KeyPrefix = "AuthSessionStore";
 
         public RedisCacheTicketStore(string RedisConnectionString)
-        {
-            InitRedisConnectionAsync(RedisConnectionString);
-        }
-
-        private void InitRedisConnectionAsync(string RedisConnectionString)
         {
             var resolvedRedisConnection = RedisConnection.GetConnectionString(RedisConnectionString);
 

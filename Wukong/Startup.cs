@@ -71,7 +71,8 @@ namespace Wukong
                     option.Configuration = redisConnection;
                     option.InstanceName = "master";
                 });
-            } else
+            }
+            else
             {
                 services.AddDataProtection();
                 services.AddDistributedMemoryCache();
@@ -120,7 +121,7 @@ namespace Wukong
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
             });
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
-            
+
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(Settings.RedisConnectionString));
 
             app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(Settings.Authentication.Microsoft));
