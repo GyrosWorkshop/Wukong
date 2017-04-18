@@ -25,21 +25,18 @@ namespace Wukong.Controllers
             _userService = userService;
         }
 
-        string UserId => Models.User.GetUserIdentifier(HttpContext.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
-            HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
         // POST api/channel/join
         [HttpPost("join/{channelId}")]
         public ActionResult Join(string channelId)
         {
-            _channelManager.JoinAndLeavePreviousChannel(channelId, UserId);
+            _channelManager.JoinAndLeavePreviousChannel(channelId, _userService.User.Id);
             return NoContent();
         }
 
         [HttpPost("finished")]
         public ActionResult Finished([FromBody] ClientSong song)
         {
-            var success = _storage.GetChannelByUser(_userService.User.Id)?.ReportFinish(UserId, song);
+            var success = _storage.GetChannelByUser(_userService.User.Id)?.ReportFinish(_userService.User.Id, song);
             if (success == true) return NoContent();
             return BadRequest();
         }
@@ -49,7 +46,7 @@ namespace Wukong.Controllers
         {
             if (song.IsEmpty()) song = null;
             var channel = _storage.GetChannelByUser(_userService.User.Id);
-            channel?.UpdateSong(UserId, song);
+            channel?.UpdateSong(_userService.User.Id, song);
             return NoContent();
         }
 
@@ -58,7 +55,7 @@ namespace Wukong.Controllers
         {
             // FIXME: test whether user joined this channel.
             var channel = _storage.GetChannelByUser(_userService.User.Id);
-            var success = channel?.ReportFinish(UserId, song, true);
+            var success = channel?.ReportFinish(_userService.User.Id, song, true);
             if (success == true) return NoContent();
             return BadRequest();
         }

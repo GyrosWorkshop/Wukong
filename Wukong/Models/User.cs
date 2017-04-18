@@ -1,8 +1,6 @@
-using System;
-using System.Runtime.InteropServices.ComTypes;
+using Stateless;
 using System.Security.Claims;
 using System.Threading;
-using Stateless;
 using Wukong.Services;
 using static System.Threading.Timeout;
 
@@ -13,14 +11,18 @@ namespace Wukong.Models
     {
         public static readonly string AvatarKey = "avatar";
         
-        public static string GetUserIdentifier(string fromSite, string siteUserId)
+        public static string BuildUserIdentifier(string fromSite, string siteUserId)
         {
             return fromSite + "." + siteUserId;
         }
 
         public string UserName { get; private set; }
 
-        public string Id { get; }
+        public string Id => BuildUserIdentifier(Site, OauthId);
+
+        private string OauthId { get; }
+
+        public string Site { get; }
 
         public string Avatar { get; private set; }
 
@@ -68,9 +70,10 @@ namespace Wukong.Models
                 .OnEntry(() => UserTimeout?.Invoke(this));
         }
 
-        public User(string userId) : this()
+        public User(string userId, string site) : this()
         {
-            Id = userId;
+            OauthId = userId;
+            Site = site;
         }
 
         public void Connect()

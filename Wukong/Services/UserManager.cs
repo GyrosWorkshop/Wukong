@@ -54,15 +54,14 @@ namespace Wukong.Services
             var user = GetOrCreate(claims.FindFirst(ClaimTypes.AuthenticationMethod)?.Value,
                 claims.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             user?.UpdateFromClaims(claims);
-            if (user != null)
-            {
-                user.UserConnected -= OnUserConnected;
-                user.UserDisconnected -= OnUserDisconnected;
-                user.UserTimeout -= OnUserTimeout;
-                user.UserConnected += OnUserConnected;
-                user.UserDisconnected += OnUserDisconnected;
-                user.UserTimeout += OnUserTimeout;
-            }
+            if (user == null) return null;
+
+            user.UserConnected -= OnUserConnected;
+            user.UserDisconnected -= OnUserDisconnected;
+            user.UserTimeout -= OnUserTimeout;
+            user.UserConnected += OnUserConnected;
+            user.UserDisconnected += OnUserDisconnected;
+            user.UserTimeout += OnUserTimeout;
             return user;
         }
 
@@ -72,7 +71,8 @@ namespace Wukong.Services
 
         private User GetOrCreate(string fromSite, string siteUserId)
         {
-            return siteUserId == null ? null : _userMap.GetOrAdd(User.GetUserIdentifier(fromSite, siteUserId), id => new User(id));
+            var id = User.BuildUserIdentifier(fromSite, siteUserId);
+            return siteUserId == null ? null : _userMap.GetOrAdd(id, _ => new User(fromSite, siteUserId));
         }
 
         public User GetUser(string userId)

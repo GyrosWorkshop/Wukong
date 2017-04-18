@@ -29,7 +29,7 @@ namespace Wukong.Services
         {
             _next = next;
         }
-        public async Task Invoke(HttpContext ctx, ISocketManager socketManager)
+        public async Task Invoke(HttpContext ctx, ISocketManager socketManager, IUserService userService)
         {
             if (ctx.WebSockets.IsWebSocketRequest && ctx.Request.Path.ToString() == "/api/ws")
             {
@@ -38,9 +38,7 @@ namespace Wukong.Services
                     return;
                 }
                 var websocket = await ctx.WebSockets.AcceptWebSocketAsync();
-                var userId = Models.User.GetUserIdentifier(ctx.User.FindFirst(ClaimTypes.AuthenticationMethod).Value,
-                    ctx.User.FindFirst(ClaimTypes.NameIdentifier).Value);
-                await socketManager.AcceptWebsocket(websocket, userId);
+                await socketManager.AcceptWebsocket(websocket, userService.User.Id);
             }
             else
             {

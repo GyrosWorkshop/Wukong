@@ -63,11 +63,11 @@ namespace Wukong
             services.Configure<SettingOptions>(Configuration);
             Configuration.Bind(Settings);
 
+            services.AddSingleton<IUserManager, UserManager>();
             services.AddSingleton<ISocketManager, SocketManager>();
             services.AddSingleton<IProvider, Provider>();
             services.AddSingleton<IChannelManager, ChannelManager>();
             services.AddSingleton<IStorage, Storage>();
-            services.AddSingleton<IUserManager, UserManager>();
             services.AddScoped<IUserService, UserService>();
             
 
@@ -114,8 +114,8 @@ namespace Wukong
             app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Settings.Authentication.Google));
 
             app.UseWebSockets();
-            app.UseMiddleware<SocketManagerMiddleware>();
             app.UseMiddleware<UserManagerMiddleware>();
+            app.UseMiddleware<SocketManagerMiddleware>();
 
             app.UseMvc();
         }
