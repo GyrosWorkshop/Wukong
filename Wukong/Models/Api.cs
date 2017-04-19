@@ -25,7 +25,7 @@ namespace Wukong.Models
 
     public class NextSongUpdated : WebSocketEvent
     {
-        new public string EventName = "NextSongUpdate";
+        new public string EventName = "Preload";
         public Song Song;
     }
 
