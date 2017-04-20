@@ -3,13 +3,12 @@ LABEL maintainer="Senorsen <senorsen.zhang@gmail.com>"
 WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
 
-COPY wukong-dist_linux-x64 ./wukong-dist_linux-x64
+ADD dotnetapp/wukong-dist_linux-x64.tar.gz .
 COPY appsettings.template.json Wukong/appsettings.json ./
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
-RUN mkdir -p /dotnetapp/wukong-dist_linux-x64/database
 VOLUME /dotnetapp/wukong-dist_linux-x64/database
 EXPOSE 5000
 CMD ["./wukong-dist_linux-x64/Wukong"]
