@@ -16,4 +16,4 @@ sed -i "s/\"WUKONG_PROVIDER\"/\"${WUKONG_PROVIDER_ESCAPE}\"/" appsettings.Produc
 # Omitted if empty.
 sed -i "s/\"RedisConnectionString\": null/\"RedisConnectionString\": \"${REDIS_CONNECTION}\"/" appsettings.Production.json
 
-exec ./wukong-dist_linux-x64/Wukong
+exec "$@"
