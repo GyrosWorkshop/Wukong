@@ -260,6 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 
-**/appsettings.json
 
 /wukong-dist*
