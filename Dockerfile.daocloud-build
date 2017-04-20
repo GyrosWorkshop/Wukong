@@ -9,7 +9,7 @@ RUN dotnet restore
 RUN dotnet publish -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64 && \
     tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64
 
-COPY appsettings.template.json .
+COPY appsettings.template.json Wukong/appsettings.json ./
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
