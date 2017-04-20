@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -18,17 +13,17 @@ namespace Wukong.Controllers
     public class ProviderController : Controller
     {
 
-        private readonly IProvider _provider;
+        private readonly IProvider provider;
         public ProviderController(IProvider provider)
         {
-            _provider = provider;
+            this.provider = provider;
         }
 
         // GET: /<controller>/
         [HttpPost("{feature}")]
         public async Task<IActionResult> Index(string feature, [FromBody] JObject body)
         {
-            var result = await _provider.ApiProxy(feature, body);
+            var result = await provider.ApiProxy(feature, body);
             return result != null ? new ObjectResult(result) : StatusCode(500, "ApiProxy null (feature not exists?)");
         }
     }

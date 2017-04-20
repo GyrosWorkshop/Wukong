@@ -1,9 +1,5 @@
-using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Collections.Generic;
-
-using Wukong.Models;
 
 namespace Wukong.Services
 {
@@ -18,32 +14,32 @@ namespace Wukong.Services
     public sealed class Storage : IStorage
     {
         
-        private readonly ConcurrentDictionary<string, Channel> ChannelMap = new ConcurrentDictionary<string, Channel>();
+        private readonly ConcurrentDictionary<string, Channel> channelMap = new ConcurrentDictionary<string, Channel>();
 
         public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider, IUserManager userManager)
         {
             // todo: move channel creation to ChannelManager
-            return channelId == null ? null : ChannelMap.GetOrAdd(channelId, s => new Channel(s, socketManager, provider, this, userManager));
+            return channelId == null ? null : channelMap.GetOrAdd(channelId, s => new Channel(channelId, socketManager, provider, userManager));
         }
 
         public Channel GetChannel(string channelId)
         {
-            if (channelId == null || !ChannelMap.ContainsKey(channelId))
+            if (channelId == null || !channelMap.ContainsKey(channelId))
             {
                 return null;
             }
-            return ChannelMap[channelId];
+            return channelMap[channelId];
         }
 
         public void RemoveChannel(string channelId)
         {
             Channel ignore;
-            ChannelMap.TryRemove(channelId, out ignore);
+            channelMap.TryRemove(channelId, out ignore);
         }
 
         public Channel GetChannelByUser(string userId)
         {
-            return ChannelMap.Values.FirstOrDefault(it => it.HasUser(userId));
+            return channelMap.Values.FirstOrDefault(it => it.HasUser(userId));
         }
     }
 }

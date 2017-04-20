@@ -3,18 +3,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Wukong.Store;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Wukong.Options
 {
     public class AuthenticationOptions
     {
-        static public CookieAuthenticationOptions CookieAuthenticationOptions(string RedisConnection)
+        static public CookieAuthenticationOptions CookieAuthenticationOptions(string redisConnection)
         {
             ITicketStore ticketStore;
-            if (!String.IsNullOrEmpty(RedisConnection))
+            if (!String.IsNullOrEmpty(redisConnection))
             {
-                ticketStore = new RedisCacheTicketStore(RedisConnection);
+                ticketStore = new RedisCacheTicketStore(redisConnection);
             }
             else
             {

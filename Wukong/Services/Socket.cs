@@ -24,10 +24,10 @@ namespace Wukong.Services
 
     public class SocketManagerMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly RequestDelegate next;
         public SocketManagerMiddleware(RequestDelegate next)
         {
-            _next = next;
+            this.next = next;
         }
         public async Task Invoke(HttpContext ctx, ISocketManager socketManager, IUserService userService)
         {
@@ -42,21 +42,21 @@ namespace Wukong.Services
             }
             else
             {
-                await _next(ctx);
+                await next(ctx);
             }
         }
     }
 
     public class SocketManager : ISocketManager
     {
-        private IUserManager _userManager;
-        private readonly ILogger Logger;
+        private readonly IUserManager userManager;
+        private readonly ILogger logger;
 
         public SocketManager(ILoggerFactory loggerFactory, IUserManager userManager)
         {
-            Logger = loggerFactory.CreateLogger("SockerManager");
-            Logger.LogDebug("SocketManager initialized");
-            _userManager = userManager;
+            logger = loggerFactory.CreateLogger("SockerManager");
+            logger.LogDebug("SocketManager initialized");
+            this.userManager = userManager;
         }
 
         private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
@@ -70,7 +70,7 @@ namespace Wukong.Services
                     socket.Dispose();
                     return webSocket;
                 });
-            _userManager.GetUser(userId).Connect();
+            userManager.GetUser(userId).Connect();
             await StartMonitorSocket(userId, webSocket);
         }
 
@@ -92,7 +92,7 @@ namespace Wukong.Services
             }
             catch (Exception)
             {
-                Logger.LogInformation("user: " + userIds + " message sent failed.");
+                logger.LogInformation("user: " + userIds + " message sent failed.");
             }
         }
 
@@ -114,17 +114,17 @@ namespace Wukong.Services
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.ToString());
+                logger.LogError(ex.ToString());
             }
             finally
             {
-                Logger.LogDebug($"user: {userId} socket disposed.");
+                logger.LogDebug($"user: {userId} socket disposed.");
                 WebSocket ws;
                 if (verifiedSocket.TryRemove(userId, out ws))
                 {
                     socket?.Dispose();
                 }
-                _userManager.GetUser(userId)?.Disconnect();
+                userManager.GetUser(userId)?.Disconnect();
             }
         }
 
