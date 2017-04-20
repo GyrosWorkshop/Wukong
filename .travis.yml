@@ -5,7 +5,7 @@ services:
 - docker
 script:
 - docker build -t wukong-build . -f Dockerfile.build
-- docker run --name wukong-build --entrypoint /bin/bash wukong-build tar czvf tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
+- docker run --name wukong-build --entrypoint /bin/bash wukong-build tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 - docker cp wukong-build:/dotnetapp/wukong-dist_linux-x64.tar.gz .
 after_success:
 - bash scripts/docker-push.sh
