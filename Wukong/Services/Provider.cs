@@ -25,8 +25,8 @@ namespace Wukong.Services
     {
         private readonly HttpClient client;
         private readonly JsonMediaTypeFormatter formatter;
-        private readonly TelemetryClient Telemetry;
-        private readonly ILogger Logger;
+        private readonly TelemetryClient telemetry;
+        private readonly ILogger logger;
 
         public Provider(IOptions<SettingOptions> option, ILoggerFactory loggerFactory)
         {
@@ -38,8 +38,8 @@ namespace Wukong.Services
                 Formatting = Formatting.Indented,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             };
-            Telemetry = new TelemetryClient();
-            Logger = loggerFactory.CreateLogger<Provider>();
+            telemetry = new TelemetryClient();
+            logger = loggerFactory.CreateLogger<Provider>();
         }
 
         public async Task<List<SongInfo>> Search(SearchSongRequest query)
@@ -55,9 +55,12 @@ namespace Wukong.Services
                     result = await response.Content.ReadAsAsync<List<SongInfo>>();
                 }
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // ignored
+            }
             timer.Stop();
-            Telemetry.TrackDependency("Provider", "Search", startTime, timer.Elapsed, result != null);
+            telemetry.TrackDependency("Provider", "Search", startTime, timer.Elapsed, result != null);
             return result;
         }
 
@@ -91,13 +94,13 @@ namespace Wukong.Services
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogTrace(new EventId(), ex, "An error occurred from GetSong {0} {1} {2}", clientSong.SiteId, clientSong.SongId, currentRetry);
+                    logger.LogTrace(new EventId(), ex, "An error occurred from GetSong {0} {1} {2}", clientSong.SiteId, clientSong.SongId, currentRetry);
                 }
                 currentRetry++;
             }
             
             timer.Stop();
-            Telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
+            telemetry.TrackDependency("Provider", "GetSong", startTime, timer.Elapsed, result != null);
 
             return result;
         }
@@ -117,7 +120,7 @@ namespace Wukong.Services
             }
             finally {
                 timer.Stop();
-                Telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
+                telemetry.TrackDependency("Provider", "ApiProxy " + feature, startTime, timer.Elapsed, result != null);
             }
 
             return result;

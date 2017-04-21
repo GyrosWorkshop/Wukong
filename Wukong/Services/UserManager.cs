@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -28,24 +25,24 @@ namespace Wukong.Services
 
     public class UserManagerMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly RequestDelegate next;
         public UserManagerMiddleware(RequestDelegate next)
         {
-            _next = next;
+            this.next = next;
         }
         public async Task Invoke(HttpContext ctx, IUserManager userManager, IUserService userService)
         {
             var user = userManager.GetAndUpdateUserWithClaims(ctx.User);
             userService.User = user;
-            await _next(ctx);
+            await next(ctx);
         }
     }
 
 
     public class UserManager : IUserManager
     {
-        private readonly ConcurrentDictionary<string, User> _userMap = new ConcurrentDictionary<string, User>();
-        private readonly ILoggerFactory LoggerFactory;
+        private readonly ConcurrentDictionary<string, User> userMap = new ConcurrentDictionary<string, User>();
+        private readonly ILoggerFactory loggerFactory;
 
         public event UserStateDelegate UserConnected;
         public event UserStateDelegate UserDisconnected;
@@ -53,7 +50,7 @@ namespace Wukong.Services
 
         public UserManager(ILoggerFactory loggerFactory)
         {
-            LoggerFactory = loggerFactory;
+            this.loggerFactory = loggerFactory;
         }
 
         public User GetAndUpdateUserWithClaims(ClaimsPrincipal claims)
@@ -79,12 +76,12 @@ namespace Wukong.Services
         private User GetOrCreate(string fromSite, string siteUserId)
         {
             var id = User.BuildUserIdentifier(fromSite, siteUserId);
-            return siteUserId == null ? null : _userMap.GetOrAdd(id, _ => new User(fromSite, siteUserId, LoggerFactory));
+            return siteUserId == null ? null : userMap.GetOrAdd(id, _ => new User(fromSite, siteUserId, loggerFactory));
         }
 
         public User GetUser(string userId)
         {
-            return _userMap[userId];
+            return userMap[userId];
         }
     }
 

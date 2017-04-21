@@ -9,11 +9,11 @@ namespace Wukong.Store
     public class MemoryCacheStore : ITicketStore
     {
         private const string KeyPrefix = "AuthSessionStore";
-        private readonly IMemoryCache _cache;
+        private readonly IMemoryCache cache;
 
         public MemoryCacheStore()
         {
-            _cache = new MemoryCache(new MemoryCacheOptions());
+            cache = new MemoryCache(new MemoryCacheOptions());
         }
 
         public async Task<string> StoreAsync(AuthenticationTicket ticket)
@@ -35,7 +35,7 @@ namespace Wukong.Store
 
             options.SetSlidingExpiration(TimeSpan.FromDays(30));
 
-            _cache.Set(key, ticket, options);
+            cache.Set(key, ticket, options);
 
             return Task.FromResult(0);
         }
@@ -43,13 +43,13 @@ namespace Wukong.Store
         public Task<AuthenticationTicket> RetrieveAsync(string key)
         {
             AuthenticationTicket ticket;
-            _cache.TryGetValue(key, out ticket);
+            cache.TryGetValue(key, out ticket);
             return Task.FromResult(ticket);
         }
 
         public Task RemoveAsync(string key)
         {
-            _cache.Remove(key);
+            cache.Remove(key);
             return Task.FromResult(0);
         }
     }

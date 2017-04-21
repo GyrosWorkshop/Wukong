@@ -2,16 +2,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Redis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
 using System;
-using Wukong.Models;
+using Microsoft.WindowsAzure.Storage;
 using Wukong.Options;
 using Wukong.Repositories;
 using Wukong.Services;
@@ -22,14 +19,14 @@ namespace Wukong
     public class Startup
     {
         private IConfigurationRoot Configuration { get; }
-        private readonly SettingOptions Settings = new SettingOptions();
+        private readonly SettingOptions settings = new SettingOptions();
 
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
 
             if (env.IsEnvironment("Development"))
             {
@@ -55,13 +52,13 @@ namespace Wukong
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<SettingOptions>(Configuration);
-            Configuration.Bind(Settings);
+            Configuration.Bind(settings);
 
             // Add framework services.
             services.AddApplicationInsightsTelemetry(Configuration);
 
             // Use redis to store data protection key and session if necessary.
-            var redisConnection = RedisConnection.GetConnectionString(Settings.RedisConnectionString);
+            var redisConnection = RedisConnection.GetConnectionString(settings.RedisConnectionString);
             if (!String.IsNullOrEmpty(redisConnection))
             {
                 var redis = ConnectionMultiplexer.Connect(redisConnection);
@@ -82,10 +79,13 @@ namespace Wukong
             services.AddOptions();
             services.AddCors();
 
-            // Dependency injection.
-            services.AddScoped<IUserSongListRepository, UserSongListRepository>();
-            services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
 
+
+            var store = CloudStorageAccount.Parse(settings.AzureStorageConnectionString);
+
+            // Dependency injection.
+            services.AddSingleton(store);
+            services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
             services.AddSingleton<IUserManager, UserManager>();
             services.AddSingleton<ISocketManager, Services.SocketManager>();
             services.AddSingleton<IProvider, Provider>();
@@ -95,11 +95,6 @@ namespace Wukong
             
 
             services.AddAuthentication(options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
-
-            services.AddDbContext<UserDbContext>(options =>
-            {
-                options.UseSqlite(Settings.SqliteConnectionString);
-            });
 
             services.AddMvc()
                 .AddJsonOptions(opt =>
@@ -122,23 +117,17 @@ namespace Wukong
             });
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080").AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(Settings.RedisConnectionString));
+            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
 
-            app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(Settings.Authentication.Microsoft));
-            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(Settings.Authentication.GitHub));
-            app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(Settings.Authentication.Google));
+            app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(settings.Authentication.Microsoft));
+            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(settings.Authentication.GitHub));
+            app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(settings.Authentication.Google));
 
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
             app.UseMiddleware<SocketManagerMiddleware>();
 
             app.UseMvc();
-
-            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
-            {
-                var context = serviceScope.ServiceProvider.GetRequiredService<UserDbContext>();
-                context.Database.Migrate();
-            }
         }
     }
 }

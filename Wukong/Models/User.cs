@@ -35,12 +35,12 @@ namespace Wukong.Models
 
         public string Url { get; private set; }
 
-        private readonly StateMachine<UserState, UserTrigger> _userStateMachine =
+        private readonly StateMachine<UserState, UserTrigger> userStateMachine =
             new StateMachine<UserState, UserTrigger>(UserState.Created);
 
-        private Timer _disconnectTimer;
+        private Timer disconnectTimer;
 
-        private readonly ILogger Logger;
+        private readonly ILogger logger;
 
         public event UserStateDelegate UserConnected;
         public event UserStateDelegate UserDisconnected;
@@ -48,32 +48,32 @@ namespace Wukong.Models
 
         private User()
         {
-            _userStateMachine.Configure(UserState.Created)
+            userStateMachine.Configure(UserState.Created)
                 .Permit(UserTrigger.Connect, UserState.Connected)
                 .Permit(UserTrigger.Join, UserState.Joined)
                 .Ignore(UserTrigger.Timeout)
                 .Ignore(UserTrigger.Disconnect);
 
-            _userStateMachine.Configure(UserState.Connected)
+            userStateMachine.Configure(UserState.Connected)
                 .Permit(UserTrigger.Join, UserState.Playing)
                 .Permit(UserTrigger.Disconnect, UserState.Created)
                 .Permit(UserTrigger.Timeout, UserState.Timeout)
                 .Ignore(UserTrigger.Connect);
 
-            _userStateMachine.Configure(UserState.Joined)
+            userStateMachine.Configure(UserState.Joined)
                 .OnEntry(StartDisconnectTimer)
                 .Permit(UserTrigger.Connect, UserState.Playing)
                 .Permit(UserTrigger.Timeout, UserState.Timeout)
                 .Ignore(UserTrigger.Join)
                 .Ignore(UserTrigger.Disconnect);
 
-            _userStateMachine.Configure(UserState.Playing)
+            userStateMachine.Configure(UserState.Playing)
                 .Permit(UserTrigger.Disconnect, UserState.Joined)
                 .Ignore(UserTrigger.Join)
                 .Ignore(UserTrigger.Timeout)
                 .Ignore(UserTrigger.Connect);
 
-            _userStateMachine.Configure(UserState.Timeout)
+            userStateMachine.Configure(UserState.Timeout)
                 .SubstateOf(UserState.Created)
                 .OnEntry(() => UserTimeout?.Invoke(this));
         }
@@ -82,27 +82,27 @@ namespace Wukong.Models
         {
             Site = site;
             OauthId = userId;
-            Logger = loggerFactory.CreateLogger($"User {Id}");
+            logger = loggerFactory.CreateLogger($"User {Id}");
         }
 
         public void Connect()
         {
-            Logger.LogDebug("Connect");
-            _userStateMachine.Fire(UserTrigger.Connect);
+            logger.LogDebug("Connect");
+            userStateMachine.Fire(UserTrigger.Connect);
             UserConnected?.Invoke(this);
         }
 
         public void Disconnect()
         {
-            Logger.LogDebug("Disconnect");
-            _userStateMachine.Fire(UserTrigger.Disconnect);
+            logger.LogDebug("Disconnect");
+            userStateMachine.Fire(UserTrigger.Disconnect);
             UserDisconnected?.Invoke(this);
         }
 
         public void Join()
         {
-            Logger.LogDebug("Join");
-            _userStateMachine.Fire(UserTrigger.Join);
+            logger.LogDebug("Join");
+            userStateMachine.Fire(UserTrigger.Join);
         }
 
         public void UpdateFromClaims(ClaimsPrincipal claims)
@@ -117,16 +117,16 @@ namespace Wukong.Models
 
         private void StartDisconnectTimer()
         {
-            Logger.LogDebug("StartDisconnectTimer");
-            _disconnectTimer?.Change(Infinite, Infinite);
-            _disconnectTimer?.Dispose();
-            _disconnectTimer = new Timer(Timeout, null, 15 * 1000, Infinite);
+            logger.LogDebug("StartDisconnectTimer");
+            disconnectTimer?.Change(Infinite, Infinite);
+            disconnectTimer?.Dispose();
+            disconnectTimer = new Timer(Timeout, null, 15 * 1000, Infinite);
         }
 
         private void Timeout(object ignored)
         {
-            Logger.LogDebug("Timeout");
-            _userStateMachine.Fire(UserTrigger.Timeout);
+            logger.LogDebug("Timeout");
+            userStateMachine.Fire(UserTrigger.Timeout);
         }
 
         public enum UserState

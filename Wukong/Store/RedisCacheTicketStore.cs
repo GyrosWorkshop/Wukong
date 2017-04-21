@@ -10,15 +10,15 @@ namespace Wukong.Store
 {
     public class RedisCacheTicketStore : ITicketStore
     {
-        private IDistributedCache _cache;
+        private readonly IDistributedCache cache;
 
         private const string KeyPrefix = "AuthSessionStore";
 
-        public RedisCacheTicketStore(string RedisConnectionString)
+        public RedisCacheTicketStore(string redisConnectionString)
         {
-            var resolvedRedisConnection = RedisConnection.GetConnectionString(RedisConnectionString);
+            var resolvedRedisConnection = RedisConnection.GetConnectionString(redisConnectionString);
 
-            _cache = new RedisCache(new RedisCacheOptions
+            cache = new RedisCache(new RedisCacheOptions
             {
                 Configuration = resolvedRedisConnection,
                 InstanceName = "master"
@@ -44,20 +44,20 @@ namespace Wukong.Store
             
             options.SetSlidingExpiration(TimeSpan.FromDays(30));
 
-            _cache.Set(key, SerializeToBytes(ticket), new DistributedCacheEntryOptions());
+            cache.Set(key, SerializeToBytes(ticket), new DistributedCacheEntryOptions());
 
             return Task.FromResult(0);
         }
 
         public Task<AuthenticationTicket> RetrieveAsync(string key)
         {
-            var ticket = DeserializeFromBytes(_cache.Get(key));
+            var ticket = DeserializeFromBytes(cache.Get(key));
             return Task.FromResult(ticket);
         }
 
         public Task RemoveAsync(string key)
         {
-            _cache.Remove(key);
+            cache.Remove(key);
             return Task.FromResult(0);
         }
 

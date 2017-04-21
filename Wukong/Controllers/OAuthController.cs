@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http.Authentication;
 using System.Linq;
 using Wukong.Models;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
 
 namespace Wukong.Controllers
 {

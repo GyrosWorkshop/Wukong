@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Wukong.Models;
 
@@ -13,44 +10,44 @@ namespace Wukong.Services
     }
     public class ChannelManager : IChannelManager
     {
-        private readonly ILogger Logger;
-        private readonly IStorage Storage;
-        private readonly ISocketManager SocketManager;
-        private readonly IProvider Provider;
-        private readonly IUserManager UserManager;
+        private readonly ILogger logger;
+        private readonly IStorage storage;
+        private readonly ISocketManager socketManager;
+        private readonly IProvider provider;
+        private readonly IUserManager userManager;
 
         public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager, IProvider provider, IUserManager userManager)
         {
-            Logger = loggerFactory.CreateLogger<ChannelManager>();
-            Storage = storage;
-            Provider = provider;
-            SocketManager = socketManager;
-            UserManager = userManager;
-            UserManager.UserConnected += UserConnected;
-            UserManager.UserTimeout += UserTimeout;
+            logger = loggerFactory.CreateLogger<ChannelManager>();
+            this.storage = storage;
+            this.provider = provider;
+            this.socketManager = socketManager;
+            this.userManager = userManager;
+            this.userManager.UserConnected += UserConnected;
+            this.userManager.UserTimeout += UserTimeout;
         }
 
         public void JoinAndLeavePreviousChannel(string channelId, User user)
         {
-            if (channelId == Storage.GetChannelByUser(user.Id)?.Id) return;
+            if (channelId == storage.GetChannelByUser(user.Id)?.Id) return;
             Leave(user.Id);
-            var channel = Storage.GetOrCreateChannel(channelId, SocketManager, Provider, UserManager);
+            var channel = storage.GetOrCreateChannel(channelId, socketManager, provider, userManager);
             channel.Join(user.Id);
             user.Join();
         }
 
         public void Leave(string userId)
         {
-            var channel = Storage.GetChannelByUser(userId);
+            var channel = storage.GetChannelByUser(userId);
             channel?.Leave(userId);
             if (channel == null || !channel.Empty) return;
-            Logger.LogInformation($"Channel {channel.Id} removed.");
-            Storage.RemoveChannel(channel.Id);
+            logger.LogInformation($"Channel {channel.Id} removed.");
+            storage.RemoveChannel(channel.Id);
         }
 
         private void UserConnected(User user)
         {
-            Storage.GetChannelByUser(user.Id)?.Connect(user.Id);
+            storage.GetChannelByUser(user.Id)?.Connect(user.Id);
         }
 
         private void UserTimeout(User user)

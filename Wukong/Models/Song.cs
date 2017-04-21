@@ -1,5 +1,4 @@
-using System;
-using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Wukong.Models
 {
@@ -23,6 +22,7 @@ namespace Wukong.Models
 
         public bool IsEmpty() => SiteId == null || SongId == null;
 
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
             var hash = 17;
@@ -50,18 +50,6 @@ namespace Wukong.Models
         }
     }
 
-    public class ClientSongData : ClientSong
-    {
-        public ClientSongData() { }
-        public ClientSongData(ClientSong song)
-        {
-            SiteId = song.SiteId;
-            SongId = song.SongId;
-        }
-        public long SongListId { get; set; }
-        public virtual SongListData SongList { get; set; }
-    }
-
     public class Song : SongInfo
     {
         public Files[] Musics;
@@ -84,9 +72,9 @@ namespace Wukong.Models
 
     public class Lyric
     {
-        public bool withTimeline;
-        public bool translate;
-        public string lyric;
+        public bool WithTimeline;
+        public bool Translate;
+        public string LyricString;
     }
 
     public class Files
@@ -94,7 +82,7 @@ namespace Wukong.Models
         public string AudioQuality;
         public int AudioBitrate;
         public string Format;
-        public string file;
-        public string fileViaCdn;
+        public string File;
+        public string FileViaCdn;
     }
 }
