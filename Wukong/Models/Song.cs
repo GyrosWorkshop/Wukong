@@ -72,9 +72,9 @@ namespace Wukong.Models
 
     public class Lyric
     {
-        public bool WithTimeline;
-        public bool Translate;
-        public string LyricString;
+        public bool Lrc;
+        public bool Translated;
+        public string Data;
     }
 
     public class Files
