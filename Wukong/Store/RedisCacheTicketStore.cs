@@ -4,7 +4,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Redis;
 using System;
 using System.Threading.Tasks;
-using Wukong.Utilities;
 
 namespace Wukong.Store
 {
@@ -16,11 +15,9 @@ namespace Wukong.Store
 
         public RedisCacheTicketStore(string redisConnectionString)
         {
-            var resolvedRedisConnection = RedisConnection.GetConnectionString(redisConnectionString);
-
             cache = new RedisCache(new RedisCacheOptions
             {
-                Configuration = resolvedRedisConnection,
+                Configuration = redisConnectionString,
                 InstanceName = "master"
             });
         }

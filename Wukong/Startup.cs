@@ -12,7 +12,6 @@ using Microsoft.WindowsAzure.Storage;
 using Wukong.Options;
 using Wukong.Repositories;
 using Wukong.Services;
-using Wukong.Utilities;
 
 namespace Wukong
 {
@@ -58,14 +57,13 @@ namespace Wukong
             services.AddApplicationInsightsTelemetry(Configuration);
 
             // Use redis to store data protection key and session if necessary.
-            var redisConnection = RedisConnection.GetConnectionString(settings.RedisConnectionString);
-            if (!String.IsNullOrEmpty(redisConnection))
+            if (!String.IsNullOrEmpty(settings.RedisConnectionString))
             {
-                var redis = ConnectionMultiplexer.Connect(redisConnection);
+                var redis = ConnectionMultiplexer.Connect(settings.RedisConnectionString);
                 services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
                 {
-                    option.Configuration = redisConnection;
+                    option.Configuration = settings.RedisConnectionString;
                     option.InstanceName = "master";
                 });
             }

@@ -1,26 +1,12 @@
 sudo: required
 dist: trusty
-language: generic
-services:
-- docker
+language: csharp
+sudo: required
+mono: none
+dotnet: 1.0.1
 script:
-- docker build -t wukong-build . -f Dockerfile.build
-- docker run --name wukong-build wukong-build tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
-- docker cp wukong-build:/dotnetapp/wukong-dist_linux-x64.tar.gz .
-after_success:
-- bash scripts/docker-push.sh
+  - ./build.sh --quiet verify
 deploy:
-  skip_cleanup: true
-  provider: releases
-  api_key:
-    secure: ezefKnL218835Y+ahlzFEYAF3FsnoNs7sr8egWsDAj2jm+Mg64iXr/ofmVX4ssLgYyn+kAHZSTtbWjxCyyx1JA+EBTvDiSALIEc6bFPnNwPdtuFjgjo9daOSkBMwjxPvCTMimxdvVTBrEqFR5p7wfkvPr2LvsTOZ/xWu1Sym4GfLYxbexG9hI2tJf68XrFkoEfTJmfzRdPcuSn0oB33D7cFiibRNMN+Io+6k8nP8/8sDKnI6jToT3Ythxblkx4dEUcjocKBIP4mqaIL/AeevD7wGeNVZ7LbN1E5QgdmVPxgrivt5PtRuW1v/sGpM81+JsWLfl7O9gFBTbFQyEoX0jvo6qEAAZ/hTcCxusrHiAAvxOocYiXv9qVV+SQmgXQ4/Pac6LPEHTjkWnu+KYtH5ll+4x8fXfald5NhYU31AcM/Yivkn8u8ZupfUDBdQjITprKmhKPA6qwxUt8hz3f2Ic+nMyDM3GtwdNnIPbsnox/JzmcCZVb3b+vfPD/RwcflBFZRj+vbBRUwci+LW98mbLGV9n9ug5rTbCVyqe48i+1QHxiNoxM+Z1woEdRxgjhBYc7bOPGCfYAa+ZyA3BIScLAQZxemPUNUfc/YmW/Dd3QIvaTfjzfLEbu2BzqK/WHjg/d8O4bSd0M0bRBm1aC0n2iyCy3rDVqdp/edOAPmhZl4=
-  file: wukong-dist_linux-x64.tar.gz
-  on:
-    repo: GyrosWorkshop/Wukong
-    tags: true
+  provider: azure_web_apps
 notifications:
   email: false
-env:
-  global:
-  - secure: UIaqIeAyzxRgmfrcQ6mrZVzucDvjkSU6BPfseIh4mV5Pw6cGGoymytBsGrsIVjrQw77AGGMgZ6W/OHnvcpFSO9oU64GO40n3/EgGUvkc0zV7Ay0CZkxocHPt43ztSZQuChBCAqETKc9mzS+c7ssEuQszI4+hr3W+kuPRDU5b7PP02lDm6DfSP6ynJdGsNNfoHLXhXaXRoftl4U/z/s9HFUEDUUfZkRdXtXanuL9HdgrNEqhsN/w+scg24ycL4JGmdodUq1tVfUgkt7wGBEWcG22Z4JzuJjS8PTKskMhPvXHVVy8s8rXOLhHBfmLqr0L+Ch10KxX7VFgW2ypKvZ4Glr3t6G4MaXW3VL/YtHk9y75YlYO97yGeXjBiL9e2zAYDs/78jW3MrpeyMEP9Jk6G1cS2qBdwQ/KRbMtIgjtbBO9++y7tltXLW1qzUQ/a87vAXtte3yakhNQiQSdOU8NywUfYZYNVpcqx+E7Yqk5owf+qB3KTYsdC7dBPE7BYEZ+fFliH6BTq4zFS3Fijg6oeXQUnn0CJqFzAq60wXLbg/v6tiJCp5plEIjg+1rBhlSOLl8oikWaABZeeft/UCEIfrtHZNVYW6x1Nt7Ysvp8AukRlQ/2/AxDlVJPdvTlbo5f0UoGfXkxMIxYQjaOBy4XJ2HcGeYnroFqes0iDITKpHp0=
-  - secure: OLfNDdHQAOZrxxamV6lbVUFsmv3m1TypgMmeaX2MXEv4zDmi7+74saRHXo71JgYwbjtTCFjjqeiSgxZ/a+Xtzc2BDbu+6S0erebvYk50mVPMygKKQ5X784yzwypdy7s0TjcrGAA2n2wydE9htA45n6OdO7Urqq4EOYstbilsQMlYXPrgMFhbj/8wWwx8CIc3J3jeudtyQYDaOsGrtD4vDkmivRe6ZH0RvMq22kjKQNk0wVPAtuSLgPp88vLF8NTvB1UUQ4l01bnWpLe5P8XTgGHAiwpi7L5Bd1tmq8bttyf5vsx0qkgi1YOJAgeUwPh5iOYlUs6AsJfQz/hrWN/55X5aCavbOdX7QmxAu3jsXgxvQ2Xa7Pvv5JvPhBYbS2gXgceC2xexn7LF7g8kzVWYGmiISOfgsCjjJuOrndyiGtHCqmKnxOiEe1EWcq8+feacE7slJafhMGHN+C4Zh1dLsLcJLSBCEThrzNdLq1Hg5y/YYr1eaEhL11aUszeBtxZfc1YyJmbgYZg+feKQB2pe1mCyfZnEERATv/5OWql2sNNgaJ9RPA+uo5FOy89BP7FfUhyB03YL9L2xq6ibEy9AxRTsaAfVSxZR0gTjB3fp9fgBhtaFqj6HHnHPiloIEAK23dXB5WFz8Hamm4v4DJfb9Ett49EuQ9zNOhPMMx1rgvQ=
