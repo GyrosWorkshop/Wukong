@@ -1,6 +1,7 @@
 sudo: required
 dist: trusty
 language: csharp
+sudo: required
 mono: none
 dotnet: 1.0.1
 script:
