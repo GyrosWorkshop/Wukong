@@ -9,5 +9,6 @@
         public string SqliteConnectionString { get; set; }
         public string RedisConnectionString { get; set; }
         public string AzureStorageConnectionString { get; set; }
+        public string WukongOrigin { get; set; }
     }
 }
