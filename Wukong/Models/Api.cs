@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Wukong.Models
@@ -25,20 +24,20 @@ namespace Wukong.Models
 
     public class NextSongUpdated : WebSocketEvent
     {
-        new public string EventName = "Preload";
+        public new string EventName = "Preload";
         public Song Song;
     }
 
     public class UserListUpdated : WebSocketEvent
     {
-        new public string EventName = "UserListUpdated";
+        public new string EventName = "UserListUpdated";
         public IList<User> Users;
     }
 
     public class Play : WebSocketEvent
     {
-        new public string EventName = "Play";
-        public Boolean Downvote;
+        public new string EventName = "Play";
+        public bool Downvote;
         public Song Song;
         public double Elapsed;
         public string User;
@@ -52,7 +51,7 @@ namespace Wukong.Models
 
     public class NotificationEvent : WebSocketEvent
     {
-        new public string EventName = "Notification";
+        public new string EventName = "Notification";
         public Notification Notification;
     }
 
