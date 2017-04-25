@@ -1,40 +1,39 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Wukong.Options
 {
     public class AzureOpenIdConnectionOptions
     {
-        public static OpenIdConnectOptions Options(AzureAdB2COptions option)
+        public static List<OpenIdConnectOptions> Options(AzureAdB2COptions option, string[] policies)
         {
-            return new OpenIdConnectOptions
+            return policies.Select(s => new OpenIdConnectOptions
             {
-                AuthenticationScheme = "OpenID",
+                AutomaticChallenge = false,
                 ClientId =  option.ClientId,
-                ClientSecret = option.ClientSecret,
-                CallbackPath = "/auth",
-                MetadataAddress = "",
-                SignInScheme = "Cookies",
+                ResponseType = OpenIdConnectResponseType.IdToken,
+                Authority = $"https://login.microsoftonline.com/tfp/{option.Tenant}/{s}/v2.0",
+                SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme,
+                GetClaimsFromUserInfoEndpoint = true,
                 UseTokenLifetime = true,
-                TokenValidationParameters = new TokenValidationParameters
-                {
-                    NameClaimType = "name"
-                },
                 Events = new OpenIdConnectEvents
                 {
-                    OnAuthorizationCodeReceived = async context =>
+                    OnTicketReceived = async context =>
                     {
-                        await Task.FromResult(0);
-                    },
-                    OnMessageReceived = async context =>
-                    {
+                        context.Properties.IsPersistent = true;
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
                         await Task.FromResult(0);
                     },
 
                 }
-            };
+
+            }).ToList();
         }
     }
 }

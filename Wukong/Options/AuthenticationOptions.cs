@@ -21,7 +21,6 @@ namespace Wukong.Options
             }
             return new CookieAuthenticationOptions
             {
-                AuthenticationScheme = "Cookies",
                 SessionStore = ticketStore,
                 LoginPath = "/oauth/login",
                 ExpireTimeSpan = TimeSpan.FromDays(30),

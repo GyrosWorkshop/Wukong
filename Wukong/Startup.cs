@@ -117,11 +117,8 @@ namespace Wukong
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
-            app.UseOpenIdConnectAuthentication(AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions));
-
-            //app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(settings.Authentication.Microsoft));
-            //app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(settings.Authentication.GitHub));
-            //app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(settings.Authentication.Google));
+            AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new []{settings.AzureAdB2CPolicies.GoogleWebSignin})
+                .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();

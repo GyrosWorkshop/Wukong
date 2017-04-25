@@ -1,23 +1,35 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Authentication;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Wukong.Models;
 
 namespace Wukong.Controllers
 {
-    [Route("auth")]
+    [Route("oauth")]
     public class AuthController : Controller
     {
-
-        [HttpPost]
-        public async Task SignIn()
+        [HttpGet("all")]
+        public IEnumerable<OAuthMethod> AllSchemes()
         {
-            await HttpContext.Authentication.ChallengeAsync("OpenID", new AuthenticationProperties {RedirectUri = "/"});
+            return HttpContext.Authentication.GetAuthenticationSchemes()
+                .Where(it => it.DisplayName != null)
+                .Select(type => new OAuthMethod()
+                {
+                    Scheme = "Microsoft",
+                    DisplayName = type.DisplayName,
+                    Url = $"/oauth/go/{type.AuthenticationScheme}"
+                });
         }
 
-        [HttpGet("go/{oAuthProvider}")]
-        public IActionResult OAuthChallengeAsync(string oAuthProvider, string redirectUri = "/")
+        [HttpGet("go/{any}")]
+        public async Task SignIn(string any, string redirectUri = "/")
         {
-            return new ChallengeResult(oAuthProvider, properties: new AuthenticationProperties() { RedirectUri = redirectUri });
+            await HttpContext.Authentication.ChallengeAsync(
+                OpenIdConnectDefaults.AuthenticationScheme, 
+                new AuthenticationProperties {RedirectUri = redirectUri});
         }
     }
 }

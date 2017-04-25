@@ -1,4 +1,6 @@
-﻿namespace Wukong.Options
+﻿using System.Linq;
+
+namespace Wukong.Options
 {
     public class AzureAdB2COptions
     {
@@ -10,5 +12,6 @@
         public string ClientSecret { get; set; }
         public string Tenant { get; set; }
         public string SignInPolicyId { get; set; }
+
     }
 }
