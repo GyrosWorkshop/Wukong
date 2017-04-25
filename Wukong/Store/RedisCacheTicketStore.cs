@@ -11,7 +11,7 @@ namespace Wukong.Store
     {
         private readonly IDistributedCache cache;
 
-        private const string KeyPrefix = "AuthSessionStore";
+        private const string KeyPrefix = "SessionStore";
 
         public RedisCacheTicketStore(string redisConnectionString)
         {
