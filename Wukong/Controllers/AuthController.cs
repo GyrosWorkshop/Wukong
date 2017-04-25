@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Authentication;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Wukong.Models;
 
@@ -30,6 +31,14 @@ namespace Wukong.Controllers
             await HttpContext.Authentication.ChallengeAsync(
                 OpenIdConnectDefaults.AuthenticationScheme, 
                 new AuthenticationProperties {RedirectUri = redirectUri});
+        }
+
+        [HttpGet("signout")]
+        public ActionResult SignOut(string redirectUrl = "/")
+        {
+            return SignOut(new AuthenticationProperties {RedirectUri = redirectUrl}, 
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                OpenIdConnectDefaults.AuthenticationScheme);
         }
     }
 }
