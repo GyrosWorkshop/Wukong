@@ -18,7 +18,7 @@ namespace Wukong.Store
             cache = new RedisCache(new RedisCacheOptions
             {
                 Configuration = redisConnectionString,
-                InstanceName = "master"
+                InstanceName = "session"
             });
         }
 
