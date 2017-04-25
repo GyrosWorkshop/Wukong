@@ -33,7 +33,7 @@ namespace Wukong.Services
         {
             if (ctx.WebSockets.IsWebSocketRequest && ctx.Request.Path.ToString() == "/api/ws")
             {
-                if (string.IsNullOrEmpty(ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value))
+                if (!ctx.User.Identity.IsAuthenticated)
                 {
                     return;
                 }
