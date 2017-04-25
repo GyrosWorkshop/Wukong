@@ -65,7 +65,7 @@ namespace Wukong
                 services.AddDistributedRedisCache(option =>
                 {
                     option.Configuration = settings.RedisConnectionString;
-                    option.InstanceName = "master";
+                    option.InstanceName = "session";
                 });
             }
             else

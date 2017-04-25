@@ -11,14 +11,14 @@ namespace Wukong.Store
     {
         private readonly IDistributedCache cache;
 
-        private const string KeyPrefix = "SessionStore";
+        private const string KeyPrefix = "AuthSessionStore";
 
         public RedisCacheTicketStore(string redisConnectionString)
         {
             cache = new RedisCache(new RedisCacheOptions
             {
                 Configuration = redisConnectionString,
-                InstanceName = "master"
+                InstanceName = "session"
             });
         }
 
