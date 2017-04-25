@@ -32,9 +32,10 @@ namespace Wukong
                 // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
                 builder.AddApplicationInsightsSettings(developerMode: true);
 
-                builder.AddUserSecrets<SecretOptions>();
                 builder.AddUserSecrets<ProviderOptions>();
                 builder.AddUserSecrets<ApplicationInsightsOptions>();
+                builder.AddUserSecrets<AzureAdB2COptions>();
+                builder.AddUserSecrets<AzureAdB2CPolicies>();
             }
 
             builder.AddEnvironmentVariables();
@@ -116,10 +117,8 @@ namespace Wukong
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
-
-            app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(settings.Authentication.Microsoft));
-            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(settings.Authentication.GitHub));
-            app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(settings.Authentication.Google));
+            AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new []{settings.AzureAdB2CPolicies.WebSignin})
+                .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
