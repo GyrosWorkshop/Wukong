@@ -2,6 +2,6 @@
 {
     public class AzureAdB2CPolicies
     {
-        public string GoogleWebSignin { get; set; }
+        public string WebSignin { get; set; }
     }
 }
