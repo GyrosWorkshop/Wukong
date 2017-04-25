@@ -19,7 +19,7 @@ namespace Wukong.Models
 
         public string Id { get; }
 
-        public string Avatar => $"https://secure.gravatar.com/avatar/{Email.MD5String()}";
+        public string Avatar => $"https://secure.gravatar.com/avatar/{Email.MD5String()}?s=300";
 
         private readonly StateMachine<UserState, UserTrigger> userStateMachine =
             new StateMachine<UserState, UserTrigger>(UserState.Created);
