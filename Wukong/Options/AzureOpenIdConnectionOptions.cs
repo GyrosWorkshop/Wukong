@@ -18,7 +18,7 @@ namespace Wukong.Options
                 AutomaticChallenge = false,
                 ClientId =  option.ClientId,
                 ResponseType = OpenIdConnectResponseType.IdToken,
-                Authority = $"https://login.microsoftonline.com/tfp/{option.Tenant}/{s}/v2.0",
+                Authority = $"{option.Instance}/{option.Tenant}/{s}/v2.0",
                 SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme,
                 GetClaimsFromUserInfoEndpoint = true,
                 UseTokenLifetime = true,
