@@ -66,8 +66,12 @@ namespace Wukong.Services
 
         private void CurrentPlayingChanged()
         {
-            CurrentPlaying = Current?.Value?.Clone();
-            CurrentChanged?.Invoke(CurrentPlaying);
+            var playing = Current?.Value?.Clone();
+            if (CurrentPlaying != playing)
+            {
+                CurrentPlaying = playing;
+                CurrentChanged?.Invoke(CurrentPlaying);
+            }
             RefreshNextSong();
         }
 
@@ -82,7 +86,7 @@ namespace Wukong.Services
                 }
                 UserChanged?.Invoke(true, userId);
             }
-            if (!IsPlaying && FindNext()?.Value != null) GoNext();
+            if (!IsPlaying) GoNext();
             else RefreshNextSong();
         }
 
@@ -113,7 +117,7 @@ namespace Wukong.Services
             {
                 userSong.Song = song;
             }
-            if (!IsPlaying && FindNext().Value != null) GoNext();
+            if (!IsPlaying) GoNext();
             else RefreshNextSong();
         }
 
