@@ -114,12 +114,16 @@ namespace Wukong
             {
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
             });
-            app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin).AllowAnyMethod().AllowAnyHeader().AllowCredentials());
+
+            app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin)
+                .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
-            AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new []{settings.AzureAdB2CPolicies.WebSignin})
+            AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new[] { settings.AzureAdB2CPolicies.WebSignin })
                 .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
+            app.UseJwtBearerAuthentication(Options.AuthenticationOptions.JwtBearerOptions(settings.AzureAdB2COptions,
+                settings.AzureAdB2CPolicies));
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
             app.UseMiddleware<SocketManagerMiddleware>();

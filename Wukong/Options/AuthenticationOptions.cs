@@ -8,10 +8,10 @@ namespace Wukong.Options
 {
     public class AuthenticationOptions
     {
-        static public CookieAuthenticationOptions CookieAuthenticationOptions(string redisConnection)
+        public static CookieAuthenticationOptions CookieAuthenticationOptions(string redisConnection)
         {
             ITicketStore ticketStore;
-            if (!String.IsNullOrEmpty(redisConnection))
+            if (!string.IsNullOrEmpty(redisConnection))
             {
                 ticketStore = new RedisCacheTicketStore(redisConnection);
             }
@@ -34,6 +34,17 @@ namespace Wukong.Options
                         await context.HttpContext.Response.WriteAsync("Unauthorized");
                     }
                 }
+            };
+        }
+
+        public static JwtBearerOptions JwtBearerOptions(AzureAdB2COptions options, AzureAdB2CPolicies policies)
+        {
+            return new JwtBearerOptions
+            {
+                AutomaticChallenge = false,
+                AutomaticAuthenticate = true,
+                Authority = $"{options.Instance}/{options.Tenant}/{policies.WebSignin}/v2.0",
+                Audience = options.ClientId,
             };
         }
     }
