@@ -67,7 +67,7 @@ namespace Wukong.Services
                 webSocket,
                 (key, socket) =>
                 {
-                    socket.Dispose();
+                    socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                     return webSocket;
                 });
             userManager.GetUser(userId).Connect();
