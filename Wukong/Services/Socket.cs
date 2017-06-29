@@ -122,7 +122,7 @@ namespace Wukong.Services
                 WebSocket ws;
                 if (verifiedSocket.TryRemove(userId, out ws))
                 {
-                    socket?.Dispose();
+                    socket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
                 userManager.GetUser(userId)?.Disconnect();
             }
