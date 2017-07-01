@@ -77,32 +77,35 @@ namespace Wukong.Services
 
         public void AddUser(string userId)
         {
-            var userSong = UserSong(userId);
-            if (userSong == null)
+            var changed = false;
+            lock (UserListLock)
             {
-                lock (UserListLock)
+                var userSong = UserSong(userId);
+                if (userSong == null)
                 {
                     _list.AddLast(new UserSong(userId));
+                    changed = true;
                 }
-                UserChanged?.Invoke(true, userId);
             }
+            if (changed) UserChanged?.Invoke(true, userId);
             if (!IsPlaying) GoNext();
             else RefreshNextSong();
         }
 
         public void RemoveUser(string userId)
         {
-            //TODO: May cause deadlock?
             //TODO: removing current playing user may cause nextUser loopback to first.
-            var userSong = UserSong(userId);
-            if (userSong != null)
+            var changed = false;
+            lock (UserListLock)
             {
-                lock (UserListLock)
+                var userSong = UserSong(userId);
+                if (userSong != null)
                 {
                     _list.Remove(userSong);
+                    changed = true;
                 }
-                UserChanged?.Invoke(false, userId);
             }
+            if (changed) UserChanged?.Invoke(false, userId);
             RefreshNextSong();
             if (Empty)
             {
