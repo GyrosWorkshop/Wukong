@@ -67,7 +67,7 @@ namespace Wukong.Services
                 webSocket,
                 (key, socket) =>
                 {
-                    var closeAsync = socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                    var closeAsync = socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                     closeAsync.Wait();
                     return webSocket;
                 });
@@ -118,7 +118,7 @@ namespace Wukong.Services
                 WebSocket ws;
                 if (verifiedSocket.TryRemove(userId, out ws))
                 {
-                    var closeAsync = socket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                    var closeAsync = socket?.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                     if (closeAsync != null)
                         await closeAsync;
                 }
