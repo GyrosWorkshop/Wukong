@@ -105,7 +105,10 @@ namespace Wukong.Services
                 {
                     var token = CancellationToken.None;
                     var buffer = new ArraySegment<Byte>(new Byte[4096]);
-                    await socket.ReceiveAsync(buffer, token);
+                    var result = await socket.ReceiveAsync(buffer, token);
+                    if (result.MessageType == WebSocketMessageType.Close) {
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
