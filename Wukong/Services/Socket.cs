@@ -17,7 +17,7 @@ namespace Wukong.Services
 {
     public interface ISocketManager
     {
-        void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj);
+        void SendMessage(string[] userIds, WebSocketEvent obj);
         bool IsConnected(string userId);
         Task AcceptWebsocket(WebSocket webSocket, string userId);
     }
@@ -67,7 +67,7 @@ namespace Wukong.Services
                 webSocket,
                 (key, socket) =>
                 {
-                    var closeAsync = socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                    var closeAsync = socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                     closeAsync.Wait();
                     return webSocket;
                 });
@@ -75,7 +75,7 @@ namespace Wukong.Services
             await StartMonitorSocket(userId, webSocket);
         }
 
-        public async void SendMessage(IEnumerable<string> userIds, WebSocketEvent obj)
+        public async void SendMessage(string[] userIds, WebSocketEvent obj)
         {
             var settings = new JsonSerializerSettings
             {
@@ -86,14 +86,24 @@ namespace Wukong.Services
             var type = WebSocketMessageType.Text;
             var data = Encoding.UTF8.GetBytes(message);
             var buffer = new ArraySegment<Byte>(data);
-            try
+            foreach (var userId in userIds)
             {
-                await Task.WhenAll(verifiedSocket.Where(i => (i.Value.State == WebSocketState.Open) && userIds.Contains(i.Key))
-                                                .Select(i => i.Value.SendAsync(buffer, type, true, token)));
-            }
-            catch (Exception)
-            {
-                logger.LogInformation("user: " + userIds + " message sent failed.");
+                WebSocket ws;
+                if (!verifiedSocket.TryGetValue(userId, out ws)) continue;
+                if (ws.State != WebSocketState.Open)
+                {
+                    await RemoveSocket(userId);
+                    continue;
+                }
+                try
+                {
+                    await ws.SendAsync(buffer, type, true, token);
+                }
+                catch (Exception)
+                {
+                    logger.LogInformation("user: " + userId + " message sent failed.");
+                    await RemoveSocket(userId);
+                }
             }
         }
 
@@ -118,15 +128,20 @@ namespace Wukong.Services
             finally
             {
                 logger.LogDebug($"user: {userId} socket disposed.");
-                WebSocket ws;
-                if (verifiedSocket.TryRemove(userId, out ws))
-                {
-                    var closeAsync = socket?.CloseAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
-                    if (closeAsync != null)
-                        await closeAsync;
-                }
-                userManager.GetUser(userId)?.Disconnect();
+                await RemoveSocket(userId);
             }
+        }
+
+        private async Task RemoveSocket(string userId)
+        {
+            WebSocket ws;
+            if (verifiedSocket.TryRemove(userId, out ws))
+            {
+                var closeAsync = ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
+                if (closeAsync != null)
+                    await closeAsync;
+            }
+            userManager.GetUser(userId)?.Disconnect();
         }
 
         public bool IsConnected(string userId)
