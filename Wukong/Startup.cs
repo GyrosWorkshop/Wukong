@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
 using System;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Storage;
 using Wukong.Options;
 using Wukong.Repositories;
@@ -66,7 +69,7 @@ namespace Wukong
             if (!String.IsNullOrEmpty(settings.RedisConnectionString))
             {
                 // From: https://github.com/StackExchange/StackExchange.Redis/issues/410#issuecomment-246332140
-                ConfigurationOptions config = ConfigurationOptions.Parse(connectionString);
+                ConfigurationOptions config = ConfigurationOptions.Parse(settings.RedisConnectionString);
 
                 DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
                 int port = addressEndpoint.Port;
