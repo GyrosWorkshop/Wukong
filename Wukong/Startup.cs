@@ -46,7 +46,12 @@ namespace Wukong
             Configuration = builder.Build();
         }
 
-
+        // A workaround method.
+        bool IsIpAddress(string host)
+        {
+            string ipPattern = @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b";
+            return Regex.IsMatch(host, ipPattern);
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -60,7 +65,23 @@ namespace Wukong
             // Use redis to store data protection key and session if necessary.
             if (!String.IsNullOrEmpty(settings.RedisConnectionString))
             {
-                var redis = ConnectionMultiplexer.Connect(settings.RedisConnectionString);
+                // From: https://github.com/StackExchange/StackExchange.Redis/issues/410#issuecomment-246332140
+                ConfigurationOptions config = ConfigurationOptions.Parse(connectionString);
+
+                DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
+                int port = addressEndpoint.Port;
+
+                bool isIp = IsIpAddress(addressEndpoint.Host);
+                if (!isIp)
+                {
+                    // Please Don't use this line in blocking context. Please remove ".Result"
+                    // Just for test purposes
+                    IPHostEntry ip = Dns.GetHostEntryAsync(addressEndpoint.Host).Result;
+                    config.EndPoints.Remove(addressEndpoint);
+                    config.EndPoints.Add(ip.AddressList.First(), port);
+                }
+
+                var redis = ConnectionMultiplexer.Connect(config);
                 services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
                 {
