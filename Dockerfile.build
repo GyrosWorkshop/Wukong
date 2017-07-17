@@ -4,6 +4,8 @@ WORKDIR /dotnetapp
 RUN mkdir -p /dotnetapp
 COPY Wukong.sln .
 COPY Wukong ./Wukong
+COPY Wukong.Tests ./Wukong.Tests
+
 RUN dotnet restore
 # Publish linux version.
 RUN dotnet publish -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64
