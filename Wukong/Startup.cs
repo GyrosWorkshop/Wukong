@@ -87,8 +87,8 @@ namespace Wukong
                 var redis = ConnectionMultiplexer.Connect(config);
                 services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
-                {
-                    option.Configuration = settings.RedisConnectionString;
+                { 
+                    option.Configuration = config.ToString();
                     option.InstanceName = "session";
                 });
             }
