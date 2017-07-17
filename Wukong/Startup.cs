@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Storage;
+using Wukong.Helpers;
 using Wukong.Options;
 using Wukong.Repositories;
 using Wukong.Services;
@@ -49,13 +50,6 @@ namespace Wukong
             Configuration = builder.Build();
         }
 
-        // A workaround method.
-        bool IsIpAddress(string host)
-        {
-            string ipPattern = @"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b";
-            return Regex.IsMatch(host, ipPattern);
-        }
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -68,27 +62,15 @@ namespace Wukong
             // Use redis to store data protection key and session if necessary.
             if (!String.IsNullOrEmpty(settings.RedisConnectionString))
             {
-                // From: https://github.com/StackExchange/StackExchange.Redis/issues/410#issuecomment-246332140
-                ConfigurationOptions config = ConfigurationOptions.Parse(settings.RedisConnectionString);
+                string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
+                
 
-                DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
-                int port = addressEndpoint.Port;
-
-                bool isIp = IsIpAddress(addressEndpoint.Host);
-                if (!isIp)
-                {
-                    // Please Don't use this line in blocking context. Please remove ".Result"
-                    // Just for test purposes
-                    IPHostEntry ip = Dns.GetHostEntryAsync(addressEndpoint.Host).Result;
-                    config.EndPoints.Remove(addressEndpoint);
-                    config.EndPoints.Add(ip.AddressList.First(), port);
-                }
-
-                var redis = ConnectionMultiplexer.Connect(config);
+                var redis = ConnectionMultiplexer.Connect(redisConnectionString);
                 services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
                 { 
-                    option.Configuration = config.ToString();
+                    // Workaround.
+                    option.Configuration = redisConnectionString;
                     option.InstanceName = "session";
                 });
             }
@@ -142,7 +124,8 @@ namespace Wukong
             app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin)
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
+            string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
+            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(redisConnectionString));
             AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new[] { settings.AzureAdB2CPolicies.WebSignin })
                 .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
