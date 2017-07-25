@@ -88,22 +88,25 @@ namespace Wukong.Services
             var buffer = new ArraySegment<Byte>(data);
             foreach (var userId in userIds)
             {
-                WebSocket ws;
-                if (!verifiedSocket.TryGetValue(userId, out ws)) continue;
-                if (ws.State != WebSocketState.Open)
+                Task.Factory.StartNew(async () =>
                 {
-                    RemoveSocket(userId).Wait(token);
-                    continue;
-                }
-                try
-                {
-                    ws.SendAsync(buffer, type, true, token).Wait(token);
-                }
-                catch (Exception)
-                {
-                    logger.LogInformation("user: " + userId + " message sent failed.");
-                    RemoveSocket(userId).Wait(token);
-                }
+                    WebSocket ws;
+                    if (!verifiedSocket.TryGetValue(userId, out ws)) return;
+                    if (ws.State != WebSocketState.Open)
+                    {
+                        await RemoveSocket(userId);
+                        return;
+                    }
+                    try
+                    {
+                        await ws.SendAsync(buffer, type, true, token);
+                    }
+                    catch (Exception)
+                    {
+                        logger.LogInformation("user: " + userId + " message sent failed.");
+                        await RemoveSocket(userId);
+                    }
+                }, token);
             }
         }
 
