@@ -75,7 +75,7 @@ namespace Wukong.Services
             await StartMonitorSocket(userId, webSocket);
         }
 
-        public async void SendMessage(string[] userIds, WebSocketEvent obj)
+        public void SendMessage(string[] userIds, WebSocketEvent obj)
         {
             var settings = new JsonSerializerSettings
             {
@@ -88,22 +88,25 @@ namespace Wukong.Services
             var buffer = new ArraySegment<Byte>(data);
             foreach (var userId in userIds)
             {
-                WebSocket ws;
-                if (!verifiedSocket.TryGetValue(userId, out ws)) continue;
-                if (ws.State != WebSocketState.Open)
+                Task.Factory.StartNew(async () =>
                 {
-                    await RemoveSocket(userId);
-                    continue;
-                }
-                try
-                {
-                    await ws.SendAsync(buffer, type, true, token);
-                }
-                catch (Exception)
-                {
-                    logger.LogInformation("user: " + userId + " message sent failed.");
-                    await RemoveSocket(userId);
-                }
+                    WebSocket ws;
+                    if (!verifiedSocket.TryGetValue(userId, out ws)) return;
+                    if (ws.State != WebSocketState.Open)
+                    {
+                        await RemoveSocket(userId);
+                        return;
+                    }
+                    try
+                    {
+                        await ws.SendAsync(buffer, type, true, token);
+                    }
+                    catch (Exception)
+                    {
+                        logger.LogInformation("user: " + userId + " message sent failed.");
+                        await RemoveSocket(userId);
+                    }
+                }, token);
             }
         }
 
