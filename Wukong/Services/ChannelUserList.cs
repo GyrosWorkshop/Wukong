@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Wukong.Helpers;
 using Wukong.Models;
 
@@ -7,7 +8,7 @@ namespace Wukong.Services
 {
     public class ChannelUserList
     {
-        private static readonly object UserListLock = new object();
+        private static readonly Mutex UserListMutex = new Mutex();
 
         public delegate void UserListChangedHandler(bool add, string userId);
 
@@ -45,10 +46,10 @@ namespace Wukong.Services
         {
             get
             {
-                lock (UserListLock)
-                {
-                    return _list.Select(it => it.UserId).ToList();
-                }
+                UserListMutex.WaitOne();
+                var userList = _list.Select(it => it.UserId).ToList();
+                UserListMutex.ReleaseMutex();
+                return userList;
             }
         }
 
@@ -78,15 +79,13 @@ namespace Wukong.Services
         public void AddUser(string userId)
         {
             var changed = false;
-            lock (UserListLock)
+            UserListMutex.WaitOne();
+            if (_list.FirstOrDefault(it => it.UserId == userId) == null)
             {
-                var userSong = UserSong(userId);
-                if (userSong == null)
-                {
-                    _list.AddLast(new UserSong(userId));
-                    changed = true;
-                }
+                _list.AddLast(new UserSong(userId));
+                changed = true;
             }
+            UserListMutex.ReleaseMutex();
             if (changed) UserChanged?.Invoke(true, userId);
             if (!IsPlaying) GoNext();
             else RefreshNextSong();
@@ -96,15 +95,14 @@ namespace Wukong.Services
         {
             //TODO: removing current playing user may cause nextUser loopback to first.
             var changed = false;
-            lock (UserListLock)
+            UserListMutex.WaitOne();
+            var userSong = _list.FirstOrDefault(it => it.UserId == userId);
+            if (userSong != null)
             {
-                var userSong = UserSong(userId);
-                if (userSong != null)
-                {
-                    _list.Remove(userSong);
-                    changed = true;
-                }
+                _list.Remove(userSong);
+                changed = true;
             }
+            UserListMutex.ReleaseMutex();
             if (changed) UserChanged?.Invoke(false, userId);
             RefreshNextSong();
             if (Empty)
@@ -146,10 +144,10 @@ namespace Wukong.Services
 
         private UserSong UserSong(string userId)
         {
-            lock (UserListLock)
-            {
-                return _list.FirstOrDefault(it => it.UserId == userId);
-            }
+            UserListMutex.WaitOne();
+            var userSong = _list.FirstOrDefault(it => it.UserId == userId);
+            UserListMutex.ReleaseMutex();
+            return userSong;
         }
     }
 }
