@@ -12,6 +12,7 @@ namespace Wukong.Helpers
     {
         public static string RedisConnectionDnsLookup(string redisConnectionString)
         {
+            if (string.IsNullOrEmpty(redisConnectionString)) return null;
             ConfigurationOptions config = ConfigurationOptions.Parse(redisConnectionString);
 
             DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
