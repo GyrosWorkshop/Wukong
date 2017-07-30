@@ -82,6 +82,7 @@ namespace Wukong.Services
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
             };
             var message = JsonConvert.SerializeObject(obj, settings);
+            logger.LogDebug("Sending message to " + String.Join(", ", userIds) + ": " + message);
             var token = CancellationToken.None;
             var type = WebSocketMessageType.Text;
             var data = Encoding.UTF8.GetBytes(message);
@@ -100,6 +101,7 @@ namespace Wukong.Services
                     try
                     {
                         await ws.SendAsync(buffer, type, true, token);
+                        logger.LogDebug("Sent message to " + userId + ": " + message);
                     }
                     catch (Exception)
                     {
