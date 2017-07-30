@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.FileProviders;
 using Wukong.Services;
 using Wukong.Models;
 
@@ -39,9 +40,16 @@ namespace Wukong.Controllers
         [HttpPost("updateNextSong")]
         public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
-            if (song.IsEmpty()) song = null;
+            if (song.IsEmpty())
+            {
+                return NotFound("Song not found.");
+            }
             var channel = storage.GetChannelByUser(userService.User.Id);
-            channel?.UpdateSong(userService.User.Id, song);
+            if (channel == null)
+            {
+                return NotFound("Channel not found.");
+            }
+            channel.UpdateSong(userService.User.Id, song);
             return NoContent();
         }
 
