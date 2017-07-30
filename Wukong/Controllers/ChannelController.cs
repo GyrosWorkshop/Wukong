@@ -39,10 +39,7 @@ namespace Wukong.Controllers
         [HttpPost("updateNextSong")]
         public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
-            if (song.IsEmpty())
-            {
-                return NotFound("Song not found.");
-            }
+            if (song.IsEmpty()) song = null;
             var channel = storage.GetChannelByUser(userService.User.Id);
             if (channel == null)
             {
