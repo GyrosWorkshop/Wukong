@@ -41,7 +41,11 @@ namespace Wukong.Controllers
         {
             if (song.IsEmpty()) song = null;
             var channel = storage.GetChannelByUser(userService.User.Id);
-            channel?.UpdateSong(userService.User.Id, song);
+            if (channel == null)
+            {
+                return NotFound("Channel not found.");
+            }
+            channel.UpdateSong(userService.User.Id, song);
             return NoContent();
         }
 
