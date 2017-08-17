@@ -96,7 +96,7 @@ namespace Wukong
             services.AddSingleton<IProvider, Provider>();
             services.AddSingleton<IChannelManager, ChannelManager>();
             services.AddSingleton<IStorage, Storage>();
-            services.AddSingleton<IMusicStorage, MusicStorage>();
+            services.AddSingleton<ISongStorage, SongStorage>();
             services.AddScoped<IUserService, UserService>();
             
 

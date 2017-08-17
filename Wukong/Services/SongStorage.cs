@@ -7,7 +7,6 @@ using Wukong.Models;
 
 namespace Wukong.Services
 {
-    public delegate void UserSongChanged(User user, ClientSong song);
     public interface ISongStorage
     {
         /// <summary>
@@ -16,7 +15,7 @@ namespace Wukong.Services
         /// </summary>
         /// <param name="user"></param>
         /// <param name="listener"></param>
-        void AddListener(User user, UserSongChanged listener);
+        void AddListener(User user, SongStorage.UserSongChanged listener);
         void RemoveListener(User user);
         void SetSong(User user, ClientSong song);
         void MarkCurrent(User user);
@@ -24,6 +23,8 @@ namespace Wukong.Services
     }
     public class SongStorage: ISongStorage
     {
+        public delegate void UserSongChanged(User user, ClientSong song);
+
         private readonly ConcurrentDictionary<string, ClientSong> _songs =
             new ConcurrentDictionary<string, ClientSong>();
 
