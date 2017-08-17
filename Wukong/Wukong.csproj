@@ -9,6 +9,18 @@
     <RuntimeIdentifiers>debian.8-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
+
+
+  <ItemGroup>
+    <Compile Remove="Services\UserSong.cs" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Compile Include="Services\SongStorage.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.3" />

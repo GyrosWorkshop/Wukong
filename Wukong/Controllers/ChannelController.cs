@@ -43,7 +43,7 @@ namespace Wukong.Controllers
         public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
             if (song.IsEmpty()) song = null;
-            songStorage.SetNextSong(userService.User, song);
+            songStorage.SetSong(userService.User, song);
             return NoContent();
         }
 
