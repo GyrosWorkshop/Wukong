@@ -11,19 +11,18 @@ namespace Wukong.Services
     {
         /// <summary>
         /// Add song update listener for specific user.
-        /// Will call listener once listener is setup.
+        /// Will invoke listener once setup.
         /// </summary>
         /// <param name="user"></param>
         /// <param name="listener"></param>
-        void AddListener(User user, SongStorage.UserSongChanged listener);
-        void RemoveListener(User user);
-        void SetSong(User user, ClientSong song);
-        void MarkCurrent(User user);
-        ClientSong GetCurrent(User user);
+        void AddListener(string userId, SongStorage.UserSongChanged listener);
+        void RemoveListener(string userId);
+        void SetSong(string userId, ClientSong song);
+        void MarkCurrent(string userId);
     }
     public class SongStorage: ISongStorage
     {
-        public delegate void UserSongChanged(User user, ClientSong song);
+        public delegate void UserSongChanged(string userId, ClientSong song);
 
         private readonly ConcurrentDictionary<string, ClientSong> _songs =
             new ConcurrentDictionary<string, ClientSong>();
@@ -31,31 +30,30 @@ namespace Wukong.Services
         private readonly ConcurrentDictionary<string, UserSongChanged> _listeners =
             new ConcurrentDictionary<string, UserSongChanged>();
 
-        public void AddListener(User user, UserSongChanged listener)
+        public void AddListener(string userId, UserSongChanged listener)
         {
-            _listeners[user.Id] = listener;
-            listener?.Invoke(user, _songs[user.Id]);
+            _listeners[userId] = listener;
+            if (_songs.TryGetValue(userId, out var song))
+            {
+                listener?.Invoke(userId, song);
+            }
         }
 
-        public void RemoveListener(User user)
+        public void RemoveListener(string userId)
         {
-            _listeners.TryRemove(user.Id, out UserSongChanged _);
+            _listeners.TryRemove(userId, out UserSongChanged _);
         }
 
-        public void SetSong(User user, ClientSong song)
+        public void SetSong(string userId, ClientSong song)
         {
-            _songs[user.Id] = song;
-            _listeners[user.Id]?.Invoke(user, song);
+            _songs[userId] = song;
+            _listeners[userId]?.Invoke(userId, song);
         }
 
-        public void MarkCurrent(User user)
+        public void MarkCurrent(string userId)
         {
-            _songs.TryRemove(user.Id, out ClientSong _);
-        }
-
-        public ClientSong GetCurrent(User user)
-        {
-            return _songs[user.Id];
+            _songs.TryRemove(userId, out ClientSong _);
+            _listeners[userId]?.Invoke(userId, null);
         }
     }
 }

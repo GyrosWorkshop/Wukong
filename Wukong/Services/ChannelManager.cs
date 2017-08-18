@@ -15,14 +15,17 @@ namespace Wukong.Services
         private readonly ISocketManager socketManager;
         private readonly IProvider provider;
         private readonly IUserManager userManager;
+        private readonly ISongStorage songStorage;
 
-        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager, IProvider provider, IUserManager userManager)
+        public ChannelManager(ILoggerFactory loggerFactory, IStorage storage, ISocketManager socketManager,
+            IProvider provider, IUserManager userManager, ISongStorage songStorage)
         {
             logger = loggerFactory.CreateLogger<ChannelManager>();
             this.storage = storage;
             this.provider = provider;
             this.socketManager = socketManager;
             this.userManager = userManager;
+            this.songStorage = songStorage;
             this.userManager.UserConnected += UserConnected;
             this.userManager.UserTimeout += UserTimeout;
         }
@@ -31,7 +34,7 @@ namespace Wukong.Services
         {
             if (channelId == storage.GetChannelByUser(user.Id)?.Id) return;
             Leave(user.Id);
-            var channel = storage.GetOrCreateChannel(channelId, socketManager, provider, userManager);
+            var channel = storage.GetOrCreateChannel(channelId, socketManager, provider, userManager, songStorage);
             channel.Join(user.Id);
             user.Join();
         }
