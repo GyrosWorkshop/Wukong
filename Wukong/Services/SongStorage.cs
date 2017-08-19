@@ -22,38 +22,64 @@ namespace Wukong.Services
     }
     public class SongStorage: ISongStorage
     {
+        private readonly object _lock = new object();
+
         public delegate void UserSongChanged(string userId, ClientSong song);
 
-        private readonly ConcurrentDictionary<string, ClientSong> _songs =
-            new ConcurrentDictionary<string, ClientSong>();
+        private readonly Dictionary<string, ClientSong> _pendingSongs =
+            new Dictionary<string, ClientSong>();
 
-        private readonly ConcurrentDictionary<string, UserSongChanged> _listeners =
-            new ConcurrentDictionary<string, UserSongChanged>();
+        private readonly Dictionary<string, ClientSong> _currentSongs =
+            new Dictionary<string, ClientSong>();
+
+        private readonly Dictionary<string, UserSongChanged> _listeners =
+            new Dictionary<string, UserSongChanged>();
 
         public void AddListener(string userId, UserSongChanged listener)
         {
-            _listeners[userId] = listener;
-            if (_songs.TryGetValue(userId, out var song))
+            lock (_lock)
             {
-                listener?.Invoke(userId, song);
+                _listeners[userId] = listener;
+                if (_pendingSongs.TryGetValue(userId, out var song))
+                {
+                    listener?.Invoke(userId, song);
+                    MarkCurrent(userId);
+                }
             }
         }
 
         public void RemoveListener(string userId)
         {
-            _listeners.TryRemove(userId, out UserSongChanged _);
+            lock (_lock)
+            {
+                _listeners.Remove(userId);
+                _pendingSongs.Remove(userId);
+            }
         }
 
         public void SetSong(string userId, ClientSong song)
         {
-            _songs[userId] = song;
-            _listeners[userId]?.Invoke(userId, song);
+            lock (_lock)
+            {
+                _pendingSongs[userId] = song;
+                if (!_pendingSongs.ContainsKey(userId))
+                {
+                    // No song is playing, emit song now.
+                    EmitSong(userId);
+                }
+            }
+        }
+
+        private void EmitSong(string userId)
+        {
+            ClientSong nextSong;
+            _pendingSongs.TryGetValue(userId, out nextSong);
         }
 
         public void MarkCurrent(string userId)
         {
-            _songs.TryRemove(userId, out ClientSong _);
-            _listeners[userId]?.Invoke(userId, null);
+            _pendingSongs.Remove(userId);
+            EmitSong(userId);
         }
     }
 }
