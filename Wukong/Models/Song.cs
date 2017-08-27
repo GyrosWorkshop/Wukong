@@ -84,5 +84,6 @@ namespace Wukong.Models
         public string Format;
         public string File;
         public string FileViaCdn;
+        public bool Unavailable;
     }
 }
