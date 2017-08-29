@@ -24,6 +24,7 @@ namespace Wukong.Services
     class Provider : IProvider
     {
         private readonly HttpClient client;
+        private readonly HttpClient getSongClient;
         private readonly JsonMediaTypeFormatter formatter;
         private readonly TelemetryClient telemetry;
         private readonly ILogger logger;
@@ -32,7 +33,12 @@ namespace Wukong.Services
         {
             client = new HttpClient();
             client.BaseAddress = new Uri(option.Value.Provider.Url);
-            client.Timeout = TimeSpan.FromSeconds(8);
+            
+            // Special option for getSongClient.
+            getSongClient = new HttpClient();
+            getSongClient.BaseAddress = new Uri(option.Value.Provider.Url);
+            getSongClient.Timeout = TimeSpan.FromSeconds(8);
+            
             formatter = new JsonMediaTypeFormatter();
             formatter.SerializerSettings = new JsonSerializerSettings
             {
@@ -87,7 +93,7 @@ namespace Wukong.Services
             {
                 try
                 {
-                    var response = await client.PostAsync("api/songInfo", request, formatter);
+                    var response = await getSongClient.PostAsync("api/songInfo", request, formatter);
                     if (response.IsSuccessStatusCode)
                     {
                         result = await response.Content.ReadAsAsync<Song>();
