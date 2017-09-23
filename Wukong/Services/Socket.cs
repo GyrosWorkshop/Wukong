@@ -72,8 +72,7 @@ namespace Wukong.Services
                 (key, tuple) =>
                 {
                     var socket = tuple.Item1;
-                    var oldDeviceId = tuple.Item2;
-                    SendMessage(socket, new DisconnectEvent {Cause = oldDeviceId}).Wait();
+                    SendMessage(socket, new DisconnectEvent {Cause = deviceId}).Wait();
                     socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None).Wait();
                     return newTuple;
                 });
