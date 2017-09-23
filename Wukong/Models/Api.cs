@@ -55,6 +55,12 @@ namespace Wukong.Models
         public Notification Notification;
     }
 
+    public class DisconnectEvent : WebSocketEvent
+    {
+        public new string EventName = "Disconnect";
+        public string Cause;
+    }
+
     public class ClientSongList
     {
         public string Name;

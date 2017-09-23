@@ -4,9 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
 using System.Net.WebSockets;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -19,7 +16,7 @@ namespace Wukong.Services
     {
         void SendMessage(string[] userIds, WebSocketEvent obj);
         bool IsConnected(string userId);
-        Task AcceptWebsocket(WebSocket webSocket, string userId);
+        Task AcceptWebsocket(WebSocket webSocket, string userId, string deviceId);
     }
 
     public class SocketManagerMiddleware
@@ -38,7 +35,12 @@ namespace Wukong.Services
                     return;
                 }
                 var websocket = await ctx.WebSockets.AcceptWebSocketAsync();
-                await socketManager.AcceptWebsocket(websocket, userService.User.Id);
+                ctx.Request.Query.TryGetValue("deviceId", out var deviceId);
+                if (String.IsNullOrEmpty(deviceId))
+                {
+                    ctx.Request.Headers.TryGetValue("User-Agent", out deviceId);
+                }
+                await socketManager.AcceptWebsocket(websocket, userService.User.Id, deviceId);
             }
             else
             {
@@ -59,40 +61,51 @@ namespace Wukong.Services
             this.userManager = userManager;
         }
 
-        private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket = new ConcurrentDictionary<string, WebSocket>();
+        private readonly ConcurrentDictionary<string, Tuple<WebSocket, string>> verifiedSocket =
+            new ConcurrentDictionary<string, Tuple<WebSocket, string>>();
 
-        public async Task AcceptWebsocket(WebSocket webSocket, string userId)
+        public async Task AcceptWebsocket(WebSocket webSocket, string userId, string deviceId)
         {
+            var newTuple = new Tuple<WebSocket, string>(webSocket, deviceId);
             verifiedSocket.AddOrUpdate(userId,
-                webSocket,
-                (key, socket) =>
+                newTuple,
+                (key, tuple) =>
                 {
-                    var closeAsync = socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
-                    closeAsync.Wait();
-                    return webSocket;
+                    var socket = tuple.Item1;
+                    var oldDeviceId = tuple.Item2;
+                    SendMessage(socket, new DisconnectEvent {Cause = oldDeviceId}).Wait();
+                    socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None).Wait();
+                    return newTuple;
                 });
             userManager.GetUser(userId).Connect();
             await StartMonitorSocket(userId, webSocket);
         }
 
-        public void SendMessage(string[] userIds, WebSocketEvent obj)
+        private async Task SendMessage(WebSocket websocket, WebSocketEvent obj)
         {
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
             };
             var message = JsonConvert.SerializeObject(obj, settings);
-            logger.LogDebug("Sending message to " + String.Join(", ", userIds) + ": " + message);
+            const WebSocketMessageType type = WebSocketMessageType.Text;
             var token = CancellationToken.None;
-            var type = WebSocketMessageType.Text;
             var data = Encoding.UTF8.GetBytes(message);
-            var buffer = new ArraySegment<Byte>(data);
+            var buffer = new ArraySegment<byte>(data);
+            await websocket.SendAsync(buffer, type, true, token);
+            logger.LogDebug(message);
+        }
+
+        public void SendMessage(string[] userIds, WebSocketEvent obj)
+        {
+            logger.LogDebug("Sending message to " + string.Join(", ", userIds) + " " + obj + " " + obj.EventName);
+            var token = CancellationToken.None;
             foreach (var userId in userIds)
             {
                 Task.Factory.StartNew(async () =>
                 {
-                    WebSocket ws;
-                    if (!verifiedSocket.TryGetValue(userId, out ws)) return;
+                    if (!verifiedSocket.TryGetValue(userId, out var tuple)) return;
+                    var ws = tuple.Item1;
                     if (ws.State != WebSocketState.Open)
                     {
                         await RemoveSocket(userId);
@@ -100,8 +113,7 @@ namespace Wukong.Services
                     }
                     try
                     {
-                        await ws.SendAsync(buffer, type, true, token);
-                        logger.LogDebug("Sent message to " + userId + ": " + message);
+                        await SendMessage(ws, obj);
                     }
                     catch (Exception)
                     {
@@ -139,9 +151,9 @@ namespace Wukong.Services
 
         private async Task RemoveSocket(string userId)
         {
-            WebSocket ws;
-            if (verifiedSocket.TryRemove(userId, out ws))
+            if (verifiedSocket.TryRemove(userId, out var tuple))
             {
+                var ws = tuple.Item1;
                 var closeAsync = ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 if (closeAsync != null)
                     await closeAsync;
