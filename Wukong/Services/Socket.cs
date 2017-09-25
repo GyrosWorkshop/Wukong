@@ -63,21 +63,19 @@ namespace Wukong.Services
             this.userManager = userManager;
         }
 
-        private readonly ConcurrentDictionary<string, Tuple<WebSocket, string>> verifiedSocket =
-            new ConcurrentDictionary<string, Tuple<WebSocket, string>>();
+        private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket =
+            new ConcurrentDictionary<string, WebSocket>();
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId, string deviceId)
         {
-            var newTuple = new Tuple<WebSocket, string>(webSocket, deviceId);
             verifiedSocket.AddOrUpdate(userId,
-                newTuple,
-                (key, tuple) =>
+                webSocket,
+                (key, socket) =>
                 {
-                    var socket = tuple.Item1;
                     logger.LogInformation("Disconnect socket " + socket + ", cause: " + deviceId);
                     SendMessage(socket, new DisconnectEvent {Cause = deviceId}).Wait();
                     socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None).Wait();
-                    return newTuple;
+                    return webSocket;
                 });
             userManager.GetUser(userId).Connect();
             await StartMonitorSocket(userId, webSocket);
@@ -106,11 +104,10 @@ namespace Wukong.Services
             {
                 Task.Factory.StartNew(async () =>
                 {
-                    if (!verifiedSocket.TryGetValue(userId, out var tuple)) return;
-                    var ws = tuple.Item1;
+                    if (!verifiedSocket.TryGetValue(userId, out var ws)) return;
                     if (ws.State != WebSocketState.Open)
                     {
-                        await RemoveSocket(userId, ws);
+                        await RemoveSocket(userId);
                         return;
                     }
                     try
@@ -120,7 +117,7 @@ namespace Wukong.Services
                     catch (Exception)
                     {
                         logger.LogInformation("user: " + userId + " message sent failed.");
-                        await RemoveSocket(userId, ws);
+                        await RemoveSocket(userId);
                     }
                 }, token);
             }
@@ -148,31 +145,29 @@ namespace Wukong.Services
             finally
             {
                 logger.LogInformation($"user: {userId} socket disposed.");
-                await RemoveSocket(userId, socket);
-            }
-        }
-
-        private async Task RemoveSocket(string userId, WebSocket socket = null)
-        {
-            if (verifiedSocket.TryGetValue(userId, out var tuple))
-            {
-                var ws = tuple.Item1;
-                if (ws == socket)
+                if (verifiedSocket.TryGetValue(userId, out var currentSocket))
                 {
-                    // This is the current active socket, close it and set user state to disconnected.
-                    verifiedSocket.TryRemove(userId, out tuple);
-                    logger.LogInformation($"remove user connection {userId}");
-                    userManager.GetUser(userId)?.Disconnect();
+                    // This is the current active socket, remove it.
+                    await RemoveSocket(userId);
                 }
                 else
                 {
-                    // If socket parameter is not null, it is not the current active one, and just close it instead of the active one.
-                    socket = socket ?? ws;
+                    // This is not the current active socket, and just close it instead of the active one.
+                    await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close",
+                            CancellationToken.None);
                 }
             }
-            if (socket != null)
+        }
+
+        private async Task RemoveSocket(string userId)
+        {
+            userManager.GetUser(userId)?.Disconnect();
+            if (verifiedSocket.TryRemove(userId, out var ws))
+            {
+                logger.LogInformation($"remove socket {userId}");
                 await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close",
-                    CancellationToken.None);
+                        CancellationToken.None);
+            }
         }
 
         public bool IsConnected(string userId)
