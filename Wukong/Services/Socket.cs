@@ -145,7 +145,7 @@ namespace Wukong.Services
             finally
             {
                 logger.LogInformation($"user: {userId} socket disposed.");
-                if (verifiedSocket.TryGetValue(userId, out var currentSocket))
+                if (verifiedSocket.TryGetValue(userId, out var currentSocket) && socket == currentSocket)
                 {
                     // This is the current active socket, remove it.
                     await RemoveSocket(userId);
@@ -162,7 +162,7 @@ namespace Wukong.Services
         private async Task RemoveSocket(string userId)
         {
             userManager.GetUser(userId)?.Disconnect();
-            if (verifiedSocket.TryRemove(userId, out var ws))
+            if (verifiedSocket.TryRemove(userId, out var socket))
             {
                 logger.LogInformation($"remove socket {userId}");
                 await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close",
