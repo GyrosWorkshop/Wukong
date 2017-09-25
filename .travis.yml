@@ -6,7 +6,5 @@ dotnet: 1.0.1
 script:
   - ./build.sh --quiet verify
   - cd Wukong.Tests && dotnet restore && dotnet xunit
-deploy:
-  provider: azure_web_apps
 notifications:
   email: false

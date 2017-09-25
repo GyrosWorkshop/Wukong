@@ -22,10 +22,12 @@ namespace Wukong.Services
     public class SocketManagerMiddleware
     {
         private readonly RequestDelegate next;
+
         public SocketManagerMiddleware(RequestDelegate next)
         {
             this.next = next;
         }
+
         public async Task Invoke(HttpContext ctx, ISocketManager socketManager, IUserService userService)
         {
             if (ctx.WebSockets.IsWebSocketRequest && ctx.Request.Path.ToString() == "/api/ws")
@@ -57,24 +59,23 @@ namespace Wukong.Services
         public SocketManager(ILoggerFactory loggerFactory, IUserManager userManager)
         {
             logger = loggerFactory.CreateLogger("SockerManager");
-            logger.LogDebug("SocketManager initialized");
+            logger.LogInformation("SocketManager initialized");
             this.userManager = userManager;
         }
 
-        private readonly ConcurrentDictionary<string, Tuple<WebSocket, string>> verifiedSocket =
-            new ConcurrentDictionary<string, Tuple<WebSocket, string>>();
+        private readonly ConcurrentDictionary<string, WebSocket> verifiedSocket =
+            new ConcurrentDictionary<string, WebSocket>();
 
         public async Task AcceptWebsocket(WebSocket webSocket, string userId, string deviceId)
         {
-            var newTuple = new Tuple<WebSocket, string>(webSocket, deviceId);
             verifiedSocket.AddOrUpdate(userId,
-                newTuple,
-                (key, tuple) =>
+                webSocket,
+                (key, socket) =>
                 {
-                    var socket = tuple.Item1;
+                    logger.LogInformation("Disconnect socket " + socket + ", cause: " + deviceId);
                     SendMessage(socket, new DisconnectEvent {Cause = deviceId}).Wait();
                     socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None).Wait();
-                    return newTuple;
+                    return webSocket;
                 });
             userManager.GetUser(userId).Connect();
             await StartMonitorSocket(userId, webSocket);
@@ -103,8 +104,7 @@ namespace Wukong.Services
             {
                 Task.Factory.StartNew(async () =>
                 {
-                    if (!verifiedSocket.TryGetValue(userId, out var tuple)) return;
-                    var ws = tuple.Item1;
+                    if (!verifiedSocket.TryGetValue(userId, out var ws)) return;
                     if (ws.State != WebSocketState.Open)
                     {
                         await RemoveSocket(userId);
@@ -132,7 +132,8 @@ namespace Wukong.Services
                     var token = CancellationToken.None;
                     var buffer = new ArraySegment<Byte>(new Byte[4096]);
                     var result = await socket.ReceiveAsync(buffer, token);
-                    if (result.MessageType == WebSocketMessageType.Close) {
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
                         break;
                     }
                 }
@@ -143,21 +144,30 @@ namespace Wukong.Services
             }
             finally
             {
-                logger.LogDebug($"user: {userId} socket disposed.");
-                await RemoveSocket(userId);
+                logger.LogInformation($"user: {userId} socket disposed.");
+                if (verifiedSocket.TryGetValue(userId, out var currentSocket) && socket == currentSocket)
+                {
+                    // This is the current active socket, remove it.
+                    await RemoveSocket(userId);
+                }
+                else
+                {
+                    // This is not the current active socket, and just close it instead of the active one.
+                    await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close",
+                            CancellationToken.None);
+                }
             }
         }
 
         private async Task RemoveSocket(string userId)
         {
-            if (verifiedSocket.TryRemove(userId, out var tuple))
-            {
-                var ws = tuple.Item1;
-                var closeAsync = ws.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
-                if (closeAsync != null)
-                    await closeAsync;
-            }
             userManager.GetUser(userId)?.Disconnect();
+            if (verifiedSocket.TryRemove(userId, out var socket))
+            {
+                logger.LogInformation($"remove socket {userId}");
+                await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close",
+                        CancellationToken.None);
+            }
         }
 
         public bool IsConnected(string userId)
