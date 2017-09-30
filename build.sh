@@ -1,2 +1,5 @@
 #!/usr/bin/env bash
-cd Wukong && dotnet restore && dotnet build
+set -e
+cd Wukong
+dotnet restore
+dotnet build
