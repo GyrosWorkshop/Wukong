@@ -6,7 +6,7 @@ dotnet: 1.0.1
 script:
   - ./build.sh --quiet verify
   - cd Wukong.Tests && dotnet restore && dotnet xunit
-before_deploy: tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
+  - tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 deploy:
   skip_cleanup: true
   provider: releases
