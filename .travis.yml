@@ -10,11 +10,11 @@ before_deploy: tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 deploy:
   skip_cleanup: true
   provider: releases
-   api_key:
-     secure: ezefKnL218835Y+ahlzFEYAF3FsnoNs7sr8egWsDAj2jm+Mg64iXr/ofmVX4ssLgYyn+kAHZSTtbWjxCyyx1JA+EBTvDiSALIEc6bFPnNwPdtuFjgjo9daOSkBMwjxPvCTMimxdvVTBrEqFR5p7wfkvPr2LvsTOZ/xWu1Sym4GfLYxbexG9hI2tJf68XrFkoEfTJmfzRdPcuSn0oB33D7cFiibRNMN+Io+6k8nP8/8sDKnI6jToT3Ythxblkx4dEUcjocKBIP4mqaIL/AeevD7wGeNVZ7LbN1E5QgdmVPxgrivt5PtRuW1v/sGpM81+JsWLfl7O9gFBTbFQyEoX0jvo6qEAAZ/hTcCxusrHiAAvxOocYiXv9qVV+SQmgXQ4/Pac6LPEHTjkWnu+KYtH5ll+4x8fXfald5NhYU31AcM/Yivkn8u8ZupfUDBdQjITprKmhKPA6qwxUt8hz3f2Ic+nMyDM3GtwdNnIPbsnox/JzmcCZVb3b+vfPD/RwcflBFZRj+vbBRUwci+LW98mbLGV9n9ug5rTbCVyqe48i+1QHxiNoxM+Z1woEdRxgjhBYc7bOPGCfYAa+ZyA3BIScLAQZxemPUNUfc/YmW/Dd3QIvaTfjzfLEbu2BzqK/WHjg/d8O4bSd0M0bRBm1aC0n2iyCy3rDVqdp/edOAPmhZl4=
-   file: wukong-dist_linux-x64.tar.gz
-   on:
-     repo: GyrosWorkshop/Wukong
-     tags: true
+  api_key:
+    secure: ezefKnL218835Y+ahlzFEYAF3FsnoNs7sr8egWsDAj2jm+Mg64iXr/ofmVX4ssLgYyn+kAHZSTtbWjxCyyx1JA+EBTvDiSALIEc6bFPnNwPdtuFjgjo9daOSkBMwjxPvCTMimxdvVTBrEqFR5p7wfkvPr2LvsTOZ/xWu1Sym4GfLYxbexG9hI2tJf68XrFkoEfTJmfzRdPcuSn0oB33D7cFiibRNMN+Io+6k8nP8/8sDKnI6jToT3Ythxblkx4dEUcjocKBIP4mqaIL/AeevD7wGeNVZ7LbN1E5QgdmVPxgrivt5PtRuW1v/sGpM81+JsWLfl7O9gFBTbFQyEoX0jvo6qEAAZ/hTcCxusrHiAAvxOocYiXv9qVV+SQmgXQ4/Pac6LPEHTjkWnu+KYtH5ll+4x8fXfald5NhYU31AcM/Yivkn8u8ZupfUDBdQjITprKmhKPA6qwxUt8hz3f2Ic+nMyDM3GtwdNnIPbsnox/JzmcCZVb3b+vfPD/RwcflBFZRj+vbBRUwci+LW98mbLGV9n9ug5rTbCVyqe48i+1QHxiNoxM+Z1woEdRxgjhBYc7bOPGCfYAa+ZyA3BIScLAQZxemPUNUfc/YmW/Dd3QIvaTfjzfLEbu2BzqK/WHjg/d8O4bSd0M0bRBm1aC0n2iyCy3rDVqdp/edOAPmhZl4=
+  file: wukong-dist_linux-x64.tar.gz
+  on:
+    repo: GyrosWorkshop/Wukong
+    tags: true
 notifications:
   email: false
