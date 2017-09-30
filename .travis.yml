@@ -6,7 +6,7 @@ dotnet: 1.0.1
 script:
   - ./build.sh --quiet verify
   - cd Wukong.Tests && dotnet restore && dotnet xunit
-  - dotnet publish -c Release -o wukong-dist_linux-x64 -r debian.8-x64
+  - dotnet publish --self-contained -c Release -o wukong-dist_linux-x64 -r debian.8-x64
   - tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 deploy:
   skip_cleanup: true
