@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">$(PackageTargetFallback);dotnet5.6;portable-net45+win8</PackageTargetFallback>
-    <RuntimeIdentifiers>debian.8-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>debian.8-x64;ubuntu.14.04-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
