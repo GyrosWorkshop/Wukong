@@ -5,7 +5,7 @@ mono: none
 dotnet: 1.0.4
 script:
   - ./build.sh --quiet verify
-  - pushd Wukong.Tests && dotnet restore && dotnet xunit && popd
+  - pushd Wukong.Tests && dotnet restore -r linux-x64 win-x86 win-x64 && dotnet xunit && popd
   - ./publish.sh linux-x64 win-x86 win-x64
 deploy:
   skip_cleanup: true
