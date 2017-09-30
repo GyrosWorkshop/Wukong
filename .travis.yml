@@ -2,11 +2,11 @@ dist: trusty
 language: csharp
 sudo: false
 mono: none
-dotnet: 2.0.0
+dotnet: 1.0.4
 script:
   - ./build.sh --quiet verify
   - cd Wukong.Tests && dotnet restore && dotnet xunit
-  - dotnet publish --self-contained -c Release -o wukong-dist_linux-x64 -r debian.8-x64
+  - dotnet publish -c Release -o wukong-dist_linux-x64 -r ubuntu.14.04-x64
   - tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 deploy:
   skip_cleanup: true
