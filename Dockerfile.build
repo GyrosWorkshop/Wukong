@@ -8,7 +8,7 @@ COPY Wukong.Tests ./Wukong.Tests
 
 RUN dotnet restore
 # Publish linux version.
-RUN dotnet publish -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64
+RUN dotnet publish Wukong/Wukong.csproj -c Release -o ../wukong-dist_linux-x64 -r debian.8-x64
 RUN tar czvf wukong-dist_linux-x64.tar.gz wukong-dist_linux-x64/
 
 EXPOSE 5000
