@@ -1,46 +1,48 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
+
 using Wukong.Models;
 
 namespace Wukong.Repositories
 {
     public interface IUserConfigurationRepository
     {
-        Task<UserConfigurationData> GetAsync(string siteId, string userId);
-        Task AddOrUpdateAsync(string siteId, string userId, string syncPlaylists, string cookies);
+        Task<UserConfigurationData> GetAsync(string fromSite, string userId);
+        Task AddOrUpdateAsync(string fromSite, string userId, string syncPlaylists, string cookies);
     }
 
-    public class UserConfigurationRepository : IUserConfigurationRepository
+    public class UserConfigurationRepository: IUserConfigurationRepository
     {
-        private readonly CloudTable table;
+        private readonly UserDbContext context;
 
-        public UserConfigurationRepository(CloudStorageAccount account)
+        public UserConfigurationRepository(UserDbContext context)
         {
-            var client = account.CreateCloudTableClient();
-            table = client.GetTableReference("userconfiguration");
-            table.CreateIfNotExistsAsync().Wait();
+            this.context = context;
         }
 
-        public async Task<UserConfigurationData> GetAsync(string siteId, string userId)
+        public async Task<UserConfigurationData> GetAsync(string fromSite, string userId)
         {
-            var operation = TableOperation.Retrieve<UserConfigurationData>(siteId, userId);
-            var result = await table.ExecuteAsync(operation);
-            return (UserConfigurationData) result.Result;
+            return await context.UserConfiguration
+                .FindAsync(fromSite, userId) ??
+                context.UserConfiguration.Add(new UserConfigurationData
+                {
+                    UserId = userId
+                }).Entity;
         }
 
-        public async Task AddOrUpdateAsync(string siteId, string userId, string syncPlaylists, string cookies)
+        public async Task AddOrUpdateAsync(string fromSite, string userId, string syncPlaylists, string cookies)
         {
-            var data = new UserConfigurationData
-            {
-                SyncPlaylists = syncPlaylists,
-                PartitionKey = siteId,
-                RowKey = userId,
-                Cookies = cookies
-            };
+            var userConfiguration = await context.UserConfiguration
+                .FindAsync(fromSite, userId) ??
+                context.UserConfiguration.Add(new UserConfigurationData
+                {
+                    FromSite = fromSite,
+                    UserId = userId
+                }).Entity;
 
-            var operation = TableOperation.InsertOrReplace(data);
-            await table.ExecuteAsync(operation);
+            userConfiguration.SyncPlaylists = syncPlaylists;
+            userConfiguration.Cookies = cookies;
+
+            await context.SaveChangesAsync();
         }
     }
 }

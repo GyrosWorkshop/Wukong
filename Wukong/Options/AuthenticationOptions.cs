@@ -21,6 +21,7 @@ namespace Wukong.Options
             }
             return new CookieAuthenticationOptions
             {
+                AuthenticationScheme = "Cookies",
                 SessionStore = ticketStore,
                 LoginPath = "/oauth/login",
                 ExpireTimeSpan = TimeSpan.FromDays(30),
@@ -34,17 +35,6 @@ namespace Wukong.Options
                         await context.HttpContext.Response.WriteAsync("Unauthorized");
                     }
                 }
-            };
-        }
-
-        public static JwtBearerOptions JwtBearerOptions(AzureAdB2COptions options, AzureAdB2CPolicies policies)
-        {
-            return new JwtBearerOptions
-            {
-                AutomaticChallenge = false,
-                AutomaticAuthenticate = true,
-                Authority = $"{options.Instance}/{options.Tenant}/{policies.WebSignin}/v2.0",
-                Audience = options.ClientId,
             };
         }
     }

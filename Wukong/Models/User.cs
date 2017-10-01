@@ -2,7 +2,6 @@ using Stateless;
 using System.Security.Claims;
 using System.Threading;
 using Microsoft.Extensions.Logging;
-using Wukong.Helpers;
 using Wukong.Services;
 using static System.Threading.Timeout;
 
@@ -13,13 +12,26 @@ namespace Wukong.Models
     {
         public static readonly string AvatarKey = "avatar";
 
+        public static string BuildUserIdentifier(string fromSite, string siteUserId)
+        {
+            return fromSite + "." + siteUserId;
+        }
+
         public string UserName { get; private set; }
 
-        private string Email { get; set; }
+        public string Id => BuildUserIdentifier(Site, OauthId);
 
-        public string Id { get; }
+        private string OauthId { get; }
 
-        public string Avatar => $"https://secure.gravatar.com/avatar/{Email.MD5String()}?s=300";
+        public string Site { get; }
+
+        public string Avatar { get; private set; }
+
+        public string DisplayName { get; private set; }
+
+        public string FromSite { get; private set; }
+
+        public string SiteUserId { get; private set; }
 
         private readonly StateMachine<UserState, UserTrigger> userStateMachine =
             new StateMachine<UserState, UserTrigger>(UserState.Created);
@@ -64,9 +76,10 @@ namespace Wukong.Models
                 .OnEntry(() => UserTimeout?.Invoke(this));
         }
 
-        public User(string id, ILoggerFactory loggerFactory) : this()
+        public User(string site, string userId, ILoggerFactory loggerFactory) : this()
         {
-            Id = id;
+            Site = site;
+            OauthId = userId;
             logger = loggerFactory.CreateLogger($"User {Id}");
         }
 
@@ -92,8 +105,11 @@ namespace Wukong.Models
 
         public void UpdateFromClaims(ClaimsPrincipal claims)
         {
-            UserName = claims.FindFirst("name")?.Value ?? UserName;
-            Email = claims.FindFirst("emails")?.Value ?? Email;
+            UserName = claims.FindFirst(ClaimTypes.Name)?.Value ?? UserName;
+            Avatar = claims.FindFirst(AvatarKey)?.Value ?? Avatar;
+            DisplayName = claims.FindFirst(ClaimTypes.Name)?.Value;
+            FromSite = claims.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
+            SiteUserId = claims.FindFirst(ClaimTypes.NameIdentifier).Value;
         }
 
         private void StartDisconnectTimer()

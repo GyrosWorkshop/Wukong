@@ -30,7 +30,7 @@ namespace Wukong.Controllers
         [HttpGet("configuration")]
         public async Task<IActionResult> GetConfiguration()
         {
-            var configuration = await userConfigurationRespository.GetAsync("wukong", userService.User.Id);
+            var configuration = await userConfigurationRespository.GetAsync(userService.User.FromSite, userService.User.Id);
             return new ObjectResult(configuration);
         }
 
@@ -38,7 +38,7 @@ namespace Wukong.Controllers
         public async Task<IActionResult> SaveConfiguration([FromBody] UserConfigurationData configuration)
         {
             await userConfigurationRespository.AddOrUpdateAsync(
-                "wukong",
+                userService.User.FromSite,
                 userService.User.Id,
                 configuration.SyncPlaylists,
                 configuration.Cookies);
