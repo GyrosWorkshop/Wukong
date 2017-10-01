@@ -127,9 +127,7 @@ namespace Wukong
             string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
             app.UseCookieAuthentication(
                 Options.AuthenticationOptions.CookieAuthenticationOptions(redisConnectionString));
-
-            app.UseMicrosoftAccountAuthentication(OAuthProviderOptions.MicrosoftOAuthOptions(settings.Authentication.Microsoft));
-            app.UseOAuthAuthentication(OAuthProviderOptions.GitHubOAuthOptions(settings.Authentication.GitHub));
+            
             app.UseGoogleAuthentication(OAuthProviderOptions.GoogleOAuthOptions(settings.Authentication.Google));
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
