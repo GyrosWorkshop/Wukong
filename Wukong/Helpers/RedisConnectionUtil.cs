@@ -12,27 +12,21 @@ namespace Wukong.Helpers
     {
         public static string RedisConnectionDnsLookup(string redisConnectionString)
         {
-            try {
-                if (string.IsNullOrEmpty(redisConnectionString)) return null;
-                ConfigurationOptions config = ConfigurationOptions.Parse(redisConnectionString);
+            if (string.IsNullOrEmpty(redisConnectionString)) return null;
+            ConfigurationOptions config = ConfigurationOptions.Parse(redisConnectionString);
 
-                DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
-                int port = addressEndpoint.Port;
+            DnsEndPoint addressEndpoint = config.EndPoints.First() as DnsEndPoint;
+            int port = addressEndpoint.Port;
 
-                bool isIp = IsIpAddress(addressEndpoint.Host);
-                if (!isIp)
-                {
-                    // Please Don't use this line in blocking context. Please remove ".Result"
-                    // Just for test purposes
-                    IPAddress ip = Dns.GetHostEntryAsync(addressEndpoint.Host).Result.AddressList.Last();
-                    return redisConnectionString.Replace(addressEndpoint.Host, ip.ToString());
-                }
-                else
-                {
-                    return redisConnectionString;
-                }
+            bool isIp = IsIpAddress(addressEndpoint.Host);
+            if (!isIp)
+            {
+                // Please Don't use this line in blocking context. Please remove ".Result"
+                // Just for test purposes
+                IPAddress ip = Dns.GetHostEntryAsync(addressEndpoint.Host).Result.AddressList.Last();
+                return redisConnectionString.Replace(addressEndpoint.Host, ip.ToString());
             }
-            catch
+            else
             {
                 return redisConnectionString;
             }
