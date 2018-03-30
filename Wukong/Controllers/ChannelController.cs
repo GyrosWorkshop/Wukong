@@ -12,12 +12,15 @@ namespace Wukong.Controllers
         private readonly IChannelManager channelManager;
         private readonly IStorage storage;
         private readonly IUserService userService;
+        private readonly ISongStorage songStorage;
 
-        public ChannelController(IChannelManager channelManager, IStorage storage, IUserService userService)
+        public ChannelController(IChannelManager channelManager, IStorage storage, 
+            IUserService userService, ISongStorage songStorage)
         {
             this.channelManager = channelManager;
             this.storage = storage;
             this.userService = userService;
+            this.songStorage = songStorage;
         }
 
         // POST api/channel/join
@@ -40,12 +43,7 @@ namespace Wukong.Controllers
         public ActionResult UpdateNextSong([FromBody] ClientSong song)
         {
             if (song.IsEmpty()) song = null;
-            var channel = storage.GetChannelByUser(userService.User.Id);
-            if (channel == null)
-            {
-                return NotFound("Channel not found.");
-            }
-            channel.UpdateSong(userService.User.Id, song);
+            songStorage.SetSong(userService.User.Id, song);
             return NoContent();
         }
 

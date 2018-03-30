@@ -8,54 +8,19 @@ using static System.Threading.Timeout;
 
 namespace Wukong.Services
 {
-    public class UserSong
-    {
-        public delegate void ClientSongChangedHandler(UserSong userSong, ClientSong previousSong);
-        public event ClientSongChangedHandler ClientSongChanged;
-
-        public readonly string UserId;
-        private ClientSong song;
-
-        public ClientSong Song
-        {
-            get => song;
-            set
-            {
-                var previous = song;
-                song = value;
-                OnSongChanged(previous);
-            }
-        }
-
-        public UserSong(string userId)
-        {
-            UserId = userId;
-        }
-
-        private void OnSongChanged(ClientSong previous)
-        {
-            ClientSongChanged?.Invoke(this, previous);
-        }
-
-        public UserSong Clone()
-        {
-            return new UserSong(UserId)
-            {
-                Song = Song
-            };
-        }
-    }
-
     public class Channel
     {
         public string Id { get; }
         private readonly ISocketManager socketManager;
         private readonly IProvider provider;
         private readonly IUserManager userManager;
+        private readonly ISongStorage songStorage;
 
         private readonly ISet<string> finishedUsers = new HashSet<string>();
         private readonly ISet<string> downvoteUsers = new HashSet<string>();
         private readonly ChannelUserList list = new ChannelUserList();
+
+        private readonly SongStorage.UserSongChanged userSongChanged;
 
         private DateTime startTime;
         private Timer finishTimeoutTimer;
@@ -65,12 +30,15 @@ namespace Wukong.Services
         private Song nextServerSong;
         public List<string> UserList => list.UserList;
 
-        public Channel(string id, ISocketManager socketManager, IProvider provider, IUserManager userManager)
+        public Channel(string id, ISocketManager socketManager, IProvider provider,
+            IUserManager userManager, ISongStorage songStorage)
         {
-            Id = id;
+            this.Id = id;
             this.socketManager = socketManager;
             this.provider = provider;
             this.userManager = userManager;
+            this.songStorage = songStorage;
+            userSongChanged = (userId, song) => list.SetSong(userId, song);
 
             list.CurrentChanged += song =>
             {
@@ -92,6 +60,7 @@ namespace Wukong.Services
         public void Join(string userId)
         {
             list.AddUser(userId);
+            songStorage.AddListener(userId, userSongChanged);
             if (socketManager.IsConnected(userId))
             {
                 EmitChannelInfo(userId);
@@ -100,6 +69,7 @@ namespace Wukong.Services
 
         public void Leave(string userId)
         {
+            songStorage.RemoveListener(userId);
             list.RemoveUser(userId);
         }
 
