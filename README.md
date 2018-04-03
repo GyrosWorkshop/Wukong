@@ -1,5 +1,6 @@
 # Wukong
-A Wukong backend written in C#.
+
+Wukong is a web-based music sharing platform which is implemented in C# and JavaScript. The application allows users to share and listen their favorite songs together.
 
 [![Build Status](https://travis-ci.org/GyrosWorkshop/Wukong.svg?branch=master)](https://travis-ci.org/GyrosWorkshop/Wukong)
 [![](https://images.microbadger.com/badges/image/gyrosworkshop/wukong.svg)](https://microbadger.com/images/gyrosworkshop/wukong "Get your own image badge on microbadger.com")
@@ -9,13 +10,20 @@ A Wukong backend written in C#.
 
 # Authentication
 
+- We currently only support Google OAuth. More will be added soon.
 - Google OAuth `/oauth/google`
 
-# HTTP Endpoint `/api`
+# HTTP Endpoint `/api` 
+
+Using APIs under `/api` endpoint requires authentication.
 
 ## Section `/channel`
 
+The APIs under `channel` section controls the main logic of Wukong service.
+
 ### POST `/join/:channelId`
+
+Join a channel using channel ID. Joining a new channel will leave the previous channel automatically.
 
 ### POST `/updateNextSong/:channelId`
 
@@ -26,9 +34,15 @@ A Wukong backend written in C#.
 
 ### POST `/downVote/:channelId`
 
+If half of the listeners have downvoted, the current song will be stopped and play next song immediately.
+
 ### POST `/finished/:channelId`
 
+The frontend should report when the current song finishes.
+
 ## Section `/song`
+
+The APIs under `/song` sections serves as a middleware between Wukong backend and Wukong providers so that provider can be added effortlessly without modifying any backend logic.
 
 ### POST `/search`
 
@@ -85,6 +99,8 @@ A Wukong backend written in C#.
 
 # WebSocket Endpoint `/`
 
+WebSocket endpoint is used to create an interactive communication between clients and backends.
+
 ## Server to Client
 
 ### Play
@@ -101,6 +117,8 @@ A Wukong backend written in C#.
     - file
 - elapsed - double
 - user
+
+A client should always stop the already playing track and start playing another when 'Play' event is received.
 
 ### UserListUpdated
 
