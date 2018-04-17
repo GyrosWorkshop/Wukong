@@ -66,13 +66,12 @@ namespace Wukong
                 string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
                 
 
-                var redis = ConnectionMultiplexer.Connect(redisConnectionString);
-                services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
+                // var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+                // services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
                 { 
                     // Workaround.
                     option.Configuration = redisConnectionString;
-                    option.InstanceName = "session";
                 });
             }
             else
@@ -89,9 +88,9 @@ namespace Wukong
 
             var store = CloudStorageAccount.Parse(settings.AzureStorageConnectionString);
 
+            services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
             // Dependency injection.
             services.AddSingleton(store);
-            services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
             services.AddSingleton<IUserManager, UserManager>();
             services.AddSingleton<ISocketManager, Services.SocketManager>();
             services.AddSingleton<IProvider, Provider>();
@@ -126,7 +125,7 @@ namespace Wukong
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(redisConnectionString));
+            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
             AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new[] { settings.AzureAdB2CPolicies.WebSignin })
                 .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
