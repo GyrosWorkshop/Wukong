@@ -65,9 +65,8 @@ namespace Wukong
             {
                 string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
                 
-
-                // var redis = ConnectionMultiplexer.Connect(redisConnectionString);
-                // services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
+                var redis = ConnectionMultiplexer.Connect(redisConnectionString);
+                services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
                 { 
                     // Workaround.
@@ -125,7 +124,7 @@ namespace Wukong
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString));
+            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(redisConnectionString));
             AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new[] { settings.AzureAdB2CPolicies.WebSignin })
                 .ForEach(option => app.UseOpenIdConnectAuthentication(option));
 
