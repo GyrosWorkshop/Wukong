@@ -1,9 +1,16 @@
-FROM microsoft/dotnet:1.1.4-runtime-deps
-LABEL maintainer="Senorsen <senorsen.zhang@gmail.com>"
+FROM microsoft/dotnet:1.1.8-sdk-1.1.9 AS build-env
 WORKDIR /dotnetapp
-RUN mkdir -p /dotnetapp
+COPY Wukong.sln .
+COPY Wukong ./Wukong
+COPY Wukong.Tests ./Wukong.Tests
 
-ADD dotnetapp/wukong-linux-x64.tar.gz .
+RUN dotnet restore
+RUN dotnet publish Wukong/Wukong.csproj -c Release -o out
+
+# runtime image
+FROM microsoft/dotnet:1.1.8-runtime
+WORKDIR /dotnetapp
+COPY --from=build-env /dotnetapp/Wukong/out .
 
 EXPOSE 5000
-CMD ["./wukong-linux-x64/Wukong"]
+ENTRYPOINT [ "dotnet", "Wukong.dll" ]
