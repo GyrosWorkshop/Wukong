@@ -11,6 +11,7 @@ RUN dotnet publish Wukong/Wukong.csproj -c Release -o out
 FROM microsoft/dotnet:1.1.8-runtime
 WORKDIR /dotnetapp
 COPY --from=build-env /dotnetapp/Wukong/out .
+VOLUME [ "/dotnetapp/runtime" ]
 
 EXPOSE 5000
 ENTRYPOINT [ "dotnet", "Wukong.dll" ]

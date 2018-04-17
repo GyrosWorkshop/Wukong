@@ -29,6 +29,7 @@ namespace Wukong
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile("runtime/appsettings.json", true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
 
             if (env.IsEnvironment("Development"))
