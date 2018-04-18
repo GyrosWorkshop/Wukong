@@ -37,7 +37,7 @@ namespace Wukong.Services
             // Special option for getSongClient.
             getSongClient = new HttpClient();
             getSongClient.BaseAddress = new Uri(option.Value.Provider.Url);
-            getSongClient.Timeout = TimeSpan.FromSeconds(8);
+            getSongClient.Timeout = TimeSpan.FromSeconds(30);
             
             formatter = new JsonMediaTypeFormatter();
             formatter.SerializerSettings = new JsonSerializerSettings
