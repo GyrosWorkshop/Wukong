@@ -120,7 +120,7 @@ namespace Wukong
                 ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
             });
 
-            app.UseCors(builder => builder.WithOrigins("http://127.0.0.1:8080", "http://localhost:8080", settings.WukongOrigin)
+            app.UseCors(builder => builder.WithOrigins(settings.WukongOrigins).WithOrigins("http://127.0.0.1:8080", "http://localhost:8080")
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
