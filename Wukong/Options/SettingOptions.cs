@@ -9,6 +9,6 @@
 
         public string RedisConnectionString { get; set; }
         public string AzureStorageConnectionString { get; set; }
-        public string WukongOrigin { get; set; }
+        public string[] WukongOrigins { get; set; }
     }
 }
