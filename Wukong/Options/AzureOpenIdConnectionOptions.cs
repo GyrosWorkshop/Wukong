@@ -11,29 +11,26 @@ namespace Wukong.Options
 {
     public class AzureOpenIdConnectionOptions
     {
-        public static List<OpenIdConnectOptions> Options(AzureAdB2COptions option, string[] policies)
-        {
-            return policies.Select(s => new OpenIdConnectOptions
+        public static Action<OpenIdConnectOptions> Options(AzureAdB2COptions option, string policy)
+            => options =>
             {
-                AutomaticChallenge = false,
-                ClientId =  option.ClientId,
-                ResponseType = OpenIdConnectResponseType.IdToken,
-                Authority = $"{option.Instance}/{option.Tenant}/{s}/v2.0",
-                SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme,
-                GetClaimsFromUserInfoEndpoint = true,
-                UseTokenLifetime = true,
-                Events = new OpenIdConnectEvents
+                options.ClientId = option.ClientId;
+                options.ResponseType = OpenIdConnectResponseType.IdToken;
+                options.Authority = $"{option.Instance}/{option.Tenant}/{policy}/v2.0";
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.UseTokenLifetime = true;
+                options.Events = new OpenIdConnectEvents
                 {
                     OnTicketReceived = async context =>
                     {
                         context.Properties.IsPersistent = true;
-                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(999999);
+                        context.Properties.AllowRefresh = true;
                         await Task.FromResult(0);
                     },
+                };
 
-                }
-
-            }).ToList();
-        }
+            };
     }
 }
