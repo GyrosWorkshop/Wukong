@@ -12,5 +12,5 @@ FROM microsoft/dotnet:2.1-aspnetcore-runtime
 WORKDIR /dotnetapp
 COPY --from=build-env /dotnetapp/Wukong/out .
 VOLUME [ "/dotnetapp/runtime" ]
-EXPOSE 5000
+EXPOSE 80
 ENTRYPOINT [ "dotnet", "Wukong.dll" ]
