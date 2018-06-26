@@ -11,7 +11,6 @@ namespace Wukong.Services
     public class UserSong
     {
         public delegate void ClientSongChangedHandler(UserSong userSong, ClientSong previousSong);
-        public event ClientSongChangedHandler ClientSongChanged;
 
         public readonly string UserId;
         private ClientSong song;
@@ -23,18 +22,12 @@ namespace Wukong.Services
             {
                 var previous = song;
                 song = value;
-                OnSongChanged(previous);
             }
         }
 
         public UserSong(string userId)
         {
             UserId = userId;
-        }
-
-        private void OnSongChanged(ClientSong previous)
-        {
-            ClientSongChanged?.Invoke(this, previous);
         }
 
         public UserSong Clone()
@@ -108,11 +101,6 @@ namespace Wukong.Services
             EmitChannelInfo(userId);
         }
 
-        public void Disconnect(string userId)
-        {
-
-        }
-
         public void UpdateSong(string userId, ClientSong song)
         {
             list.SetSong(userId, song);
@@ -120,7 +108,8 @@ namespace Wukong.Services
 
         public bool ReportFinish(string userId, ClientSong song, bool force = false)
         {
-            if (song != list.CurrentPlaying?.Song) {
+            if (song != list.CurrentPlaying?.Song)
+            {
                 CheckShouldForwardCurrentSong();
                 // Workaround: told the user the current song
                 EmitChannelInfo(userId);
@@ -223,7 +212,7 @@ namespace Wukong.Services
                             Artist = current.Song.SiteId,
                             Album = current.Song.SongId
                         },    // Workaround for play song == null problem
-                    Elapsed = Elapsed,
+                        Elapsed = Elapsed,
                         User = current.UserId
                     });
 
