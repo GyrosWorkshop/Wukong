@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -64,11 +65,11 @@ namespace Wukong
             if (!String.IsNullOrEmpty(settings.RedisConnectionString))
             {
                 string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
-                
+
                 var redis = ConnectionMultiplexer.Connect(redisConnectionString);
                 services.AddDataProtection().PersistKeysToRedis(redis, "DataProtection-Keys");
                 services.AddDistributedRedisCache(option =>
-                { 
+                {
                     // Workaround.
                     option.Configuration = redisConnectionString;
                 });
@@ -83,8 +84,6 @@ namespace Wukong
             services.AddOptions();
             services.AddCors();
 
-
-
             var store = CloudStorageAccount.Parse(settings.AzureStorageConnectionString);
 
             services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
@@ -96,10 +95,15 @@ namespace Wukong
             services.AddSingleton<IChannelManager, ChannelManager>();
             services.AddSingleton<IStorage, Storage>();
             services.AddScoped<IUserService, UserService>();
-            
 
-            services.AddAuthentication(options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
 
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddCookie(AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString))
+            .AddOpenIdConnect(AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, settings.AzureAdB2CPolicies.WebSignin));
             services.AddMvc()
                 .AddJsonOptions(opt =>
                 {
@@ -123,13 +127,9 @@ namespace Wukong
             app.UseCors(builder => builder.WithOrigins(settings.WukongOrigins).WithOrigins("http://127.0.0.1:8080", "http://localhost:8080")
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
-            string redisConnectionString = RedisConnectionUtil.RedisConnectionDnsLookup(settings.RedisConnectionString);
-            app.UseCookieAuthentication(Options.AuthenticationOptions.CookieAuthenticationOptions(redisConnectionString));
-            AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, new[] { settings.AzureAdB2CPolicies.WebSignin })
-                .ForEach(option => app.UseOpenIdConnectAuthentication(option));
-
-            app.UseJwtBearerAuthentication(Options.AuthenticationOptions.JwtBearerOptions(settings.AzureAdB2COptions,
-                settings.AzureAdB2CPolicies));
+            app.UseAuthentication();
+            // app.UseJwtBearerAuthentication(Options.AuthenticationOptions.JwtBearerOptions(settings.AzureAdB2COptions,
+            //     settings.AzureAdB2CPolicies));
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
             app.UseMiddleware<SocketManagerMiddleware>();

@@ -8,6 +8,7 @@ namespace Wukong.Services
     public class ChannelUserList
     {
         private static readonly object UserListLock = new object();
+        private readonly Dictionary<string, ClientSong> previousSong = new Dictionary<string, ClientSong>();
 
         public delegate void UserListChangedHandler(bool add, string userId);
 
@@ -70,6 +71,10 @@ namespace Wukong.Services
             if (CurrentPlaying != playing)
             {
                 CurrentPlaying = playing;
+                if (CurrentPlaying != null)
+                {
+                    previousSong[CurrentPlaying.UserId] = CurrentPlaying.Song;
+                }
                 CurrentChanged?.Invoke(CurrentPlaying);
             }
             RefreshNextSong();
@@ -118,7 +123,14 @@ namespace Wukong.Services
             var userSong = UserSong(userId);
             if (userSong != null)
             {
-                userSong.Song = song;
+                if (!previousSong.ContainsKey(userId) || previousSong[userId] != song)
+                {
+                    userSong.Song = song;
+                }
+                else
+                {
+                    userSong.Song = null;
+                }
             }
             if (!IsPlaying) GoNext();
             else RefreshNextSong();

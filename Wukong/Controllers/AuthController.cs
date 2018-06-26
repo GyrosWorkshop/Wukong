@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -15,28 +15,27 @@ namespace Wukong.Controllers
         [HttpGet("all")]
         public IEnumerable<OAuthMethod> AllSchemes()
         {
-            return HttpContext.Authentication.GetAuthenticationSchemes()
-                .Where(it => it.DisplayName != null)
-                .Select(type => new OAuthMethod()
+            return
+                new List<OAuthMethod>{ new OAuthMethod()
                 {
                     Scheme = "Microsoft",
-                    DisplayName = type.DisplayName,
-                    Url = $"/oauth/go/{type.AuthenticationScheme}"
-                });
+                    DisplayName = "OpenID",
+                    Url = $"/oauth/go/{OpenIdConnectDefaults.AuthenticationScheme}"
+                }};
         }
 
         [HttpGet("go/{any}")]
         public async Task SignIn(string any, string redirectUri = "/")
         {
-            await HttpContext.Authentication.ChallengeAsync(
-                OpenIdConnectDefaults.AuthenticationScheme, 
-                new AuthenticationProperties {RedirectUri = redirectUri});
+            await HttpContext.ChallengeAsync(
+                OpenIdConnectDefaults.AuthenticationScheme,
+                new AuthenticationProperties { RedirectUri = redirectUri });
         }
 
         [HttpGet("signout")]
-        public ActionResult SignOut(string redirectUrl = "/")
+        public SignOutResult SignOut(string redirectUrl = "/")
         {
-            return SignOut(new AuthenticationProperties {RedirectUri = redirectUrl}, 
+            return SignOut(new AuthenticationProperties { RedirectUri = redirectUrl },
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 OpenIdConnectDefaults.AuthenticationScheme);
         }
