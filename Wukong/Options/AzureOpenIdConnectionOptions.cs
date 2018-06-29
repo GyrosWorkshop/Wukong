@@ -20,17 +20,6 @@ namespace Wukong.Options
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.UseTokenLifetime = true;
-                options.Events = new OpenIdConnectEvents
-                {
-                    OnTicketReceived = async context =>
-                    {
-                        context.Properties.IsPersistent = true;
-                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(999999);
-                        context.Properties.AllowRefresh = true;
-                        await Task.FromResult(0);
-                    },
-                };
-
             };
     }
 }

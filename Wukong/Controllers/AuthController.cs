@@ -19,7 +19,7 @@ namespace Wukong.Controllers
                 new List<OAuthMethod>{ new OAuthMethod()
                 {
                     Scheme = "Microsoft",
-                    DisplayName = "OpenID",
+                    DisplayName = "Microsoft",
                     Url = $"/oauth/go/{OpenIdConnectDefaults.AuthenticationScheme}"
                 }};
         }
