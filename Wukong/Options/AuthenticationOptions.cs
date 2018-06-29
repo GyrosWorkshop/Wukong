@@ -23,23 +23,6 @@ namespace Wukong.Options
                 options.SessionStore = ticketStore;
                 options.LoginPath = "/oauth/login";
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
-                options.Events = new CookieAuthenticationEvents
-                {
-                    OnRedirectToLogin = async (context) =>
-                    {
-                        context.HttpContext.Response.StatusCode = 401;
-                        await context.HttpContext.Response.WriteAsync("Unauthorized");
-                    }
-                };
             };
-
-        public static JwtBearerOptions JwtBearerOptions(AzureAdB2COptions options, AzureAdB2CPolicies policies)
-        {
-            return new JwtBearerOptions
-            {
-                Authority = $"{options.Instance}/{options.Tenant}/{policies.WebSignin}/v2.0",
-                Audience = options.ClientId,
-            };
-        }
     }
 }

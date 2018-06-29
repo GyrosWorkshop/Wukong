@@ -100,7 +100,6 @@ namespace Wukong
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddCookie(AuthenticationOptions.CookieAuthenticationOptions(settings.RedisConnectionString))
             .AddOpenIdConnect(AzureOpenIdConnectionOptions.Options(settings.AzureAdB2COptions, settings.AzureAdB2CPolicies.WebSignin));
@@ -128,8 +127,6 @@ namespace Wukong
                 .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             app.UseAuthentication();
-            // app.UseJwtBearerAuthentication(Options.AuthenticationOptions.JwtBearerOptions(settings.AzureAdB2COptions,
-            //     settings.AzureAdB2CPolicies));
             app.UseWebSockets();
             app.UseMiddleware<UserManagerMiddleware>();
             app.UseMiddleware<SocketManagerMiddleware>();
