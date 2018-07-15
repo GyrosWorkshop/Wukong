@@ -20,7 +20,6 @@ namespace Wukong.Options
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.UseTokenLifetime = true;
-                options.RemoteAuthenticationTimeout = TimeSpan.FromDays(30);
             };
     }
 }
