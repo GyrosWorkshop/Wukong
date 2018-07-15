@@ -29,7 +29,10 @@ namespace Wukong.Controllers
         {
             await HttpContext.ChallengeAsync(
                 OpenIdConnectDefaults.AuthenticationScheme,
-                new AuthenticationProperties { RedirectUri = redirectUri });
+                new AuthenticationProperties {
+                    RedirectUri = redirectUri,
+                    IsPersistent = true
+                });
         }
 
         [HttpGet("signout")]
