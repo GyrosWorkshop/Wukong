@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using System.Threading.Tasks;
@@ -31,7 +30,8 @@ namespace Wukong.Controllers
                 OpenIdConnectDefaults.AuthenticationScheme,
                 new AuthenticationProperties {
                     RedirectUri = redirectUri,
-                    IsPersistent = true
+                    IsPersistent = true,
+                    ExpiresUtc = System.DateTime.UtcNow.AddDays(30)
                 });
         }
 
