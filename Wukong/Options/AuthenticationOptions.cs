@@ -23,6 +23,7 @@ namespace Wukong.Options
                 options.SessionStore = ticketStore;
                 options.LoginPath = "/oauth/login";
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                options.Cookie.MaxAge = TimeSpan.FromDays(30);
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
             };
     }
