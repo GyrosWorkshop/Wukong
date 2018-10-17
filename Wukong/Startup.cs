@@ -10,8 +10,6 @@ using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
 using System;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Storage;
 using Wukong.Helpers;
 using Wukong.Options;
