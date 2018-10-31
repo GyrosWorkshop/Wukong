@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Wukong.Helpers;
 using Wukong.Models;
 using static System.Threading.Timeout;
@@ -45,6 +47,7 @@ namespace Wukong.Services
         private readonly ISocketManager socketManager;
         private readonly IProvider provider;
         private readonly IUserManager userManager;
+        private readonly IMemoryCache cache;
 
         private readonly ISet<string> finishedUsers = new HashSet<string>();
         private readonly ISet<string> downvoteUsers = new HashSet<string>();
@@ -58,12 +61,13 @@ namespace Wukong.Services
         private Song nextServerSong;
         public List<string> UserList => list.UserList;
 
-        public Channel(string id, ISocketManager socketManager, IProvider provider, IUserManager userManager)
+        public Channel(string id, ISocketManager socketManager, IProvider provider, IUserManager userManager, IMemoryCache cache)
         {
             Id = id;
             this.socketManager = socketManager;
             this.provider = provider;
             this.userManager = userManager;
+            this.cache = cache;
 
             list.CurrentChanged += song =>
             {
@@ -156,6 +160,18 @@ namespace Wukong.Services
             list.GoNext();
         }
 
+        private async Task<Song> GetSong(ClientSong song) {
+            if (song == null) return null;
+            if (cache.TryGetValue(song, out Song cachedSong)) {
+                return cachedSong;
+            }
+            cachedSong = await provider.GetSong(song, true);
+            if (cachedSong != null) {
+                cache.Set(song, cachedSong, TimeSpan.FromMinutes(10));
+            }
+            return cachedSong;
+        }
+
         private void BroadcastUserListUpdated(string userId = null)
         {
             var users = list.UserList;
@@ -172,7 +188,7 @@ namespace Wukong.Services
             if (next == null) return;
             if (nextServerSong == null || nextServerSong.SongId != next.SongId || nextServerSong.SiteId != next.SiteId)
             {
-                nextServerSong = await provider.GetSong(next, true);
+                nextServerSong = await GetSong(next);
             }
             if (nextServerSong == null) return;
             socketManager.SendMessage(userId != null ? new[] { userId } : UserList.ToArray(),
@@ -196,7 +212,7 @@ namespace Wukong.Services
                 }
                 else
                 {
-                    song = await provider.GetSong(current.Song, true);
+                    song = await GetSong(current.Song);
                 }
 
                 socketManager.SendMessage(userId != null ? new[] { userId } : list.UserList.ToArray()
@@ -242,6 +258,10 @@ namespace Wukong.Services
             BroadcastUserListUpdated(userId);
             BroadcastPlayCurrentSong(list.CurrentPlaying, userId);
             BroadcastNextSongUpdated(list.NextSong, userId);
+        }
+
+        public async Task<Song> GetCurrent() {
+            return await GetSong(list.CurrentPlaying?.Song);
         }
     }
 }

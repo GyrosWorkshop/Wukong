@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Wukong.Services;
 using Wukong.Models;
+using System.Threading.Tasks;
 
 namespace Wukong.Controllers
 {
@@ -26,6 +27,14 @@ namespace Wukong.Controllers
         {
             channelManager.JoinAndLeavePreviousChannel(channelId, userService.User);
             return NoContent();
+        }
+
+        [HttpGet("{channelId}/song")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCurrent(string channelId)
+        {
+            var channel = storage.GetChannel(channelId);
+            return new ObjectResult(await channel.GetCurrent());
         }
 
         [HttpPost("finished")]

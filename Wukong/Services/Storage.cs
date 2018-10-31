@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
 using System.Linq;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Wukong.Services
 {
     public interface IStorage
     {
-        Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider, IUserManager userManager);
+        Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider, IUserManager userManager, IMemoryCache cache);
         Channel GetChannel(string channelId);
         void RemoveChannel(string channelId);
         Channel GetChannelByUser(string userId);
@@ -16,10 +17,10 @@ namespace Wukong.Services
         
         private readonly ConcurrentDictionary<string, Channel> channelMap = new ConcurrentDictionary<string, Channel>();
 
-        public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider, IUserManager userManager)
+        public Channel GetOrCreateChannel(string channelId, ISocketManager socketManager, IProvider provider, IUserManager userManager, IMemoryCache cache)
         {
             // todo: move channel creation to ChannelManager
-            return channelId == null ? null : channelMap.GetOrAdd(channelId, s => new Channel(channelId, socketManager, provider, userManager));
+            return channelId == null ? null : channelMap.GetOrAdd(channelId, s => new Channel(channelId, socketManager, provider, userManager, cache));
         }
 
         public Channel GetChannel(string channelId)
