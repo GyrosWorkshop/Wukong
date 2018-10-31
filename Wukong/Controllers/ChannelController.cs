@@ -34,7 +34,11 @@ namespace Wukong.Controllers
         public async Task<IActionResult> GetCurrent(string channelId)
         {
             var channel = storage.GetChannel(channelId);
-            return new ObjectResult(await channel.GetCurrent());
+            if (channel == null) {
+                return NoContent();
+            } else {
+                return new ObjectResult(await channel.GetCurrent());
+            }
         }
 
         [HttpPost("finished")]
