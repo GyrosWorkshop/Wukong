@@ -1,7 +1,13 @@
-dist: trusty
+dist: xenial
 sudo: required
 language: generic
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::6}
 services:
 - docker
 script:
-- docker build -t wukong-build .
+- docker build -t wukong .
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- docker tag wukong gyrosworkshop/wukong:${COMMIT}
+- docker push gyrosworkshop/wukong:${COMMIT}
